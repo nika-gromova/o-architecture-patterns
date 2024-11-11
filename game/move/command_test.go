@@ -26,9 +26,9 @@ func TestMoveCommand_Execute(t *testing.T) {
 			fields: fields{
 				obj: func(ctrl *gomock.Controller) MovingObject {
 					mock := mocks.NewMockMovingObject(ctrl)
-					mock.EXPECT().GetLocation().Return(base.Vector{X: 12, Y: 5}, true)
-					mock.EXPECT().GetVelocity().Return(base.Vector{X: -7, Y: 3}, true)
-					mock.EXPECT().SetLocation(base.Vector{X: 5, Y: 8}).Return(true)
+					mock.EXPECT().GetLocation().Return(base.Vector{Coordinates: []int{12, 5}}, true)
+					mock.EXPECT().GetVelocity().Return(base.Vector{Coordinates: []int{-7, 3}}, true)
+					mock.EXPECT().SetLocation(base.Vector{Coordinates: []int{5, 8}}).Return(true)
 					return mock
 				},
 			},
@@ -50,7 +50,7 @@ func TestMoveCommand_Execute(t *testing.T) {
 			fields: fields{
 				obj: func(ctrl *gomock.Controller) MovingObject {
 					mock := mocks.NewMockMovingObject(ctrl)
-					mock.EXPECT().GetLocation().Return(base.Vector{X: 12, Y: 5}, true)
+					mock.EXPECT().GetLocation().Return(base.Vector{Coordinates: []int{12, 5}}, true)
 					mock.EXPECT().GetVelocity().Return(base.Vector{}, false)
 					return mock
 				},
@@ -62,9 +62,9 @@ func TestMoveCommand_Execute(t *testing.T) {
 			fields: fields{
 				obj: func(ctrl *gomock.Controller) MovingObject {
 					mock := mocks.NewMockMovingObject(ctrl)
-					mock.EXPECT().GetLocation().Return(base.Vector{X: 12, Y: 5}, true)
-					mock.EXPECT().GetVelocity().Return(base.Vector{X: -7, Y: 3}, true)
-					mock.EXPECT().SetLocation(base.Vector{X: 5, Y: 8}).Return(false)
+					mock.EXPECT().GetLocation().Return(base.Vector{Coordinates: []int{12, 5}}, true)
+					mock.EXPECT().GetVelocity().Return(base.Vector{Coordinates: []int{-7, 3}}, true)
+					mock.EXPECT().SetLocation(base.Vector{Coordinates: []int{5, 8}}).Return(false)
 					return mock
 				},
 			},
