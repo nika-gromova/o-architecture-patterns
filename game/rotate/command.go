@@ -13,20 +13,20 @@ type RotatingObject interface {
 }
 
 type RotateCommand struct {
-	obj RotatingObject
+	Obj RotatingObject
 }
 
 func (c *RotateCommand) Execute() error {
-	angle, ok := c.obj.GetAngle()
+	angle, ok := c.Obj.GetAngle()
 	if !ok {
 		return fmt.Errorf("RotateCommand: angle %w", base.ErrGetProperty)
 	}
-	velocity, ok := c.obj.GetAngularVelocity()
+	velocity, ok := c.Obj.GetAngularVelocity()
 	if !ok {
 		return fmt.Errorf("RotateCommand: velocity %w", base.ErrGetProperty)
 	}
 
-	if !c.obj.SetAngle(angle.Plus(velocity)) {
+	if !c.Obj.SetAngle(angle.Plus(velocity)) {
 		return fmt.Errorf("RotateCommand: angle %w", base.ErrSetProperty)
 	}
 

@@ -79,7 +79,7 @@ func TestMoveCommand_Execute(t *testing.T) {
 			ctrl := gomock.NewController(t)
 			obj := tt.fields.obj(ctrl)
 			c := &MoveCommand{
-				obj: obj,
+				Obj: obj,
 			}
 			err := c.Execute()
 			require.True(t, errors.Is(err, tt.err))

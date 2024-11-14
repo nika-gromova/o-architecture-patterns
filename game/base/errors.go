@@ -1,9 +1,11 @@
 package base
 
-import "fmt"
+import (
+	"errors"
+)
 
 // Errors
 var (
-	ErrGetProperty = fmt.Errorf("failed to get property")
-	ErrSetProperty = fmt.Errorf("failed to set property")
+	ErrGetProperty = errors.New("failed to get property")
+	ErrSetProperty = errors.New("failed to set property")
 )

@@ -13,19 +13,19 @@ type MovingObject interface {
 }
 
 type MoveCommand struct {
-	obj MovingObject
+	Obj MovingObject
 }
 
 func (c *MoveCommand) Execute() error {
-	location, ok := c.obj.GetLocation()
+	location, ok := c.Obj.GetLocation()
 	if !ok {
 		return fmt.Errorf("MoveCommand: location %w", base.ErrGetProperty)
 	}
-	velocity, ok := c.obj.GetVelocity()
+	velocity, ok := c.Obj.GetVelocity()
 	if !ok {
 		return fmt.Errorf("MoveCommand: velocity %w", base.ErrGetProperty)
 	}
-	if !c.obj.SetLocation(location.Plus(velocity)) {
+	if !c.Obj.SetLocation(location.Plus(velocity)) {
 		return fmt.Errorf("MoveCommand: location %w", base.ErrSetProperty)
 	}
 	return nil
