@@ -15,3 +15,9 @@ func (a Angle) Plus(other Angle) Angle {
 		TotalCount: a.TotalCount,
 	}
 }
+
+func (a Angle) ToDouble() float64 {
+	coefficient := float64(360) / float64(a.TotalCount)
+	degrees := float64(a.Direction) * coefficient
+	return degrees * (math.Pi / 180.0)
+}

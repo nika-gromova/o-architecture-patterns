@@ -1,7 +1,6 @@
 package errors
 
 import (
-	"errors"
 	"fmt"
 	"testing"
 
@@ -9,16 +8,9 @@ import (
 	"github.com/nika-gromova/o-architecture-patterns/game/commands"
 	"github.com/nika-gromova/o-architecture-patterns/game/move"
 	"github.com/nika-gromova/o-architecture-patterns/game/rotate"
+	"github.com/nika-gromova/o-architecture-patterns/game/tests/stubs"
 	"github.com/stretchr/testify/require"
 )
-
-var testError = errors.New("test error")
-
-type ErrorCommand struct{}
-
-func (c *ErrorCommand) Execute() error {
-	return testError
-}
 
 func TestHandler_Handle(t *testing.T) {
 	var (
@@ -45,8 +37,8 @@ func TestHandler_Handle(t *testing.T) {
 	testHandler.Register("MoveCommand", base.ErrGetProperty.Error(), repeatHandler.Handle)
 	testHandler.Register("MoveCommand", base.ErrSetProperty.Error(), logHandler.Handle)
 	testHandler.Register("RotateCommand", base.ErrGetProperty.Error(), counterHandler.Handle)
-	testHandler.Register("ErrorCommand", testError.Error(), doubleHandler.Handle)
-	testHandler.Register("RetryCommand", testError.Error(), logHandler.Handle)
+	testHandler.Register("ErrorCommand", stubs.TestError.Error(), doubleHandler.Handle)
+	testHandler.Register("RetryCommand", stubs.TestError.Error(), logHandler.Handle)
 
 	t.Run("возвращает команду, которая ставит в очередь логирующую команду", func(t *testing.T) {
 		cmd := moveCommand
@@ -113,8 +105,8 @@ func TestHandler_Handle(t *testing.T) {
 	})
 
 	t.Run("на первые 2 вызова возвращается повторяющая команда, на третий - ретрай команда", func(t *testing.T) {
-		cmd := &ErrorCommand{}
-		err := testError
+		cmd := &stubs.ErrorCommand{}
+		err := stubs.TestError
 		expected1 := &commands.RepeatCommand{
 			Cmd: cmd,
 		}
@@ -191,17 +183,17 @@ func TestHandler_Handle2(t *testing.T) {
 		}
 	})
 
-	testHandler.Register("ErrorCommand", testError.Error(), func(command base.Command, _ error) base.Command {
+	testHandler.Register("ErrorCommand", stubs.TestError.Error(), func(command base.Command, _ error) base.Command {
 		return &commands.RetryCommand{
 			Cmd: command,
 		}
 	})
-	testHandler.Register("RetryCommand", testError.Error(), func(command base.Command, _ error) base.Command {
+	testHandler.Register("RetryCommand", stubs.TestError.Error(), func(command base.Command, _ error) base.Command {
 		return &commands.RepeatCommand{
 			Cmd: command,
 		}
 	})
-	testHandler.Register("RepeatCommand", testError.Error(), func(command base.Command, err error) base.Command {
+	testHandler.Register("RepeatCommand", stubs.TestError.Error(), func(command base.Command, err error) base.Command {
 		return &commands.LogCommand{
 			Cmd: command,
 			Err: err,
@@ -273,8 +265,8 @@ func TestHandler_Handle2(t *testing.T) {
 	})
 
 	t.Run("на первые 2 вызова возвращается повторяющая команда, на третий - ретрай команда", func(t *testing.T) {
-		cmd := &ErrorCommand{}
-		err := testError
+		cmd := &stubs.ErrorCommand{}
+		err := stubs.TestError
 		expected1 := &commands.RetryCommand{
 			Cmd: cmd,
 		}
