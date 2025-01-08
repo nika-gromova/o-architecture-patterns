@@ -16,6 +16,7 @@ type Queue struct {
 	commands      chan base.Command
 	ctx           context.Context
 	errorsHandler ErrorsHandler
+	done          chan struct{}
 }
 
 func New(ctx context.Context, handler ErrorsHandler, cmds chan base.Command) *Queue {
@@ -23,6 +24,7 @@ func New(ctx context.Context, handler ErrorsHandler, cmds chan base.Command) *Qu
 		ctx:           ctx,
 		commands:      cmds,
 		errorsHandler: handler,
+		done:          make(chan struct{}),
 	}
 }
 
@@ -37,6 +39,8 @@ func (q *Queue) Process() error {
 		select {
 		case <-q.ctx.Done():
 			return q.ctx.Err()
+		case <-q.done:
+			return nil
 		case cmd := <-q.commands:
 			if err := cmd.Execute(); err != nil {
 				err = q.errorsHandler.Handle(cmd, err).Execute()
@@ -46,4 +50,16 @@ func (q *Queue) Process() error {
 			}
 		}
 	}
+}
+
+func (q *Queue) Stop() {
+	go func() {
+		q.done <- struct{}{}
+	}()
+}
+
+func (q *Queue) Add(cmd base.Command) {
+	go func() {
+		q.commands <- cmd
+	}()
 }
