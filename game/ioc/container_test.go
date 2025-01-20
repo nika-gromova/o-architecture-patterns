@@ -135,7 +135,7 @@ func TestContainer_Register(t *testing.T) {
 			err = gotTyped.Execute(context.Background())
 			require.NoError(t, err)
 
-			dependencies, ok := scope.Value(ScopeDependenciesKey).(*Dependencies)
+			dependencies, ok := scope.Value(ScopeDependenciesKey{}).(*Dependencies)
 			require.True(t, ok)
 			require.NotNil(t, (*dependencies)[moveCommandKey])
 		})

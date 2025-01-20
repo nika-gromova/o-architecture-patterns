@@ -12,7 +12,7 @@ type RegisterCommand struct {
 }
 
 func (c *RegisterCommand) Execute(_ context.Context) error {
-	dependencies, ok := c.scope.Value(ScopeDependenciesKey).(*Dependencies)
+	dependencies, ok := c.scope.Value(ScopeDependenciesKey{}).(*Dependencies)
 	if !ok || dependencies == nil {
 		return errors.New("no dependencies found for context")
 	}

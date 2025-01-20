@@ -14,7 +14,7 @@ var (
 	ErrNoDependenciesFound = errors.New("no dependencies found")
 )
 
-const ScopeDependenciesKey = "ioc.scope.dependencies"
+type ScopeDependenciesKey struct{}
 
 type Constructor func(args ...any) (any, error)
 
@@ -72,18 +72,18 @@ func (c *Container) NewScope(ctx context.Context) context.Context {
 	defaultCopy := make(Dependencies, len(c.defaultDependencies))
 	maps.Copy(defaultCopy, c.defaultDependencies)
 
-	dependencies, ok := ctx.Value(ScopeDependenciesKey).(*Dependencies)
+	dependencies, ok := ctx.Value(ScopeDependenciesKey{}).(*Dependencies)
 	if ok && dependencies != nil {
 		for k, v := range *dependencies {
 			defaultCopy[k] = v
 		}
 	}
 
-	return context.WithValue(ctx, ScopeDependenciesKey, &defaultCopy)
+	return context.WithValue(ctx, ScopeDependenciesKey{}, &defaultCopy)
 }
 
 func (c *Container) Resolve(ctx context.Context, key string, args ...any) (any, error) {
-	dependencies, ok := ctx.Value(ScopeDependenciesKey).(*Dependencies)
+	dependencies, ok := ctx.Value(ScopeDependenciesKey{}).(*Dependencies)
 	if !ok || dependencies == nil {
 		return nil, ErrNoDependenciesFound
 	}
