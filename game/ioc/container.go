@@ -82,7 +82,7 @@ func (c *Container) NewScope(ctx context.Context) context.Context {
 	return context.WithValue(ctx, ScopeDependenciesKey{}, &defaultCopy)
 }
 
-func (c *Container) Resolve(ctx context.Context, key string, args ...any) (any, error) {
+func Resolve(ctx context.Context, key string, args ...any) (any, error) {
 	dependencies, ok := ctx.Value(ScopeDependenciesKey{}).(*Dependencies)
 	if !ok || dependencies == nil {
 		return nil, ErrNoDependenciesFound
