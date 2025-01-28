@@ -244,10 +244,7 @@ func generateKey(baseName, entityName, methodName string) string {
 
 func isMethodCommand(data methodData) bool {
 	methodName := strings.ToLower(data.Name)
-	if strings.HasPrefix(methodName, "get") {
-		return false
-	}
-	return true
+	return !strings.HasPrefix(methodName, "get")
 }
 
 func generateParamNames(params []paramData) string {
