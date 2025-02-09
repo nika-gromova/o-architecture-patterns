@@ -118,7 +118,7 @@ func TestContainer_Register(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
-			got, err := c.Resolve(tt.args.ctx, tt.args.key, tt.args.args...)
+			got, err := Resolve(tt.args.ctx, tt.args.key, tt.args.args...)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("Resolve() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -150,7 +150,7 @@ func TestContainer_Resolve(t *testing.T) {
 		scope      = c.NewScope(context.Background())
 		newScope   = c.NewScope(context.Background())
 	)
-	cmd, err := c.Resolve(scope, "IoC.Register", scope, moveCommandKey, moveCommandConstructor1)
+	cmd, err := Resolve(scope, "IoC.Register", scope, moveCommandKey, moveCommandConstructor1)
 	require.NoError(t, err)
 	cmdTyped, ok := cmd.(*RegisterCommand)
 	require.True(t, ok)
@@ -205,7 +205,7 @@ func TestContainer_Resolve(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
-			got, err := c.Resolve(tt.args.ctx, tt.args.key, tt.args.args...)
+			got, err := Resolve(tt.args.ctx, tt.args.key, tt.args.args...)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("Resolve() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -272,7 +272,7 @@ func TestContainer_Goroutines(t *testing.T) {
 }
 
 func testMoveObject(c *Container, scope context.Context, f Constructor, obj any) (any, error) {
-	register, err := c.Resolve(scope, "IoC.Register", scope, moveCommandKey, f)
+	register, err := Resolve(scope, "IoC.Register", scope, moveCommandKey, f)
 	if err != nil {
 		return nil, err
 	}
@@ -284,5 +284,5 @@ func testMoveObject(c *Container, scope context.Context, f Constructor, obj any)
 		return nil, err
 	}
 
-	return c.Resolve(scope, moveCommandKey, obj)
+	return Resolve(scope, moveCommandKey, obj)
 }
