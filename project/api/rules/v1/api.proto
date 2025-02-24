@@ -1,0 +1,98 @@
+syntax = "proto3";
+package rules;
+
+option go_package = "github.com/nika-gromova/o-architecture-patterns/project/pkg/rules_v1";
+
+import "google/api/annotations.proto";
+import "google/protobuf/timestamp.proto";
+
+service Rules {
+  rpc ListRulesV1(ListRulesV1Request) returns (ListRulesV1Response) {
+    option(google.api.http) = {
+      get: "/api/v1/rules",
+    };
+  }
+
+  rpc CreateRuleV1(CreateRuleV1Request) returns (CreateRuleV1Response) {
+    option(google.api.http) = {
+      post: "/api/v1/rules",
+      body: "*"
+    };
+  }
+
+  rpc UpdateRuleV1(UpdateRuleV1Request) returns (UpdateRuleV1Response) {
+    option(google.api.http) = {
+      put: "/api/v1/rules/{name}",
+      body: "*"
+    };
+  }
+
+  rpc DeleteRuleV1(DeleteRuleV1Request) returns (DeleteRuleV1Response) {
+    option(google.api.http) = {
+      delete: "/api/v1/rules/{name}",
+    };
+  }
+
+  rpc GetRuleV1(GetRuleV1Request) returns (GetRuleV1Response) {
+    option(google.api.http) = {
+      get: "/api/v1/rules/{name}",
+    };
+  }
+
+}
+
+message RuleV1 {
+  string name = 1;
+  repeated RedirectV1 redirects = 2;
+  optional TargetLinkV1 default_link = 3;
+}
+
+message RedirectV1 {
+  FormulaV1 formula = 1;
+  TargetLinkV1 target_link = 2;
+}
+
+message FormulaV1 {
+  string expression = 1;
+}
+
+message TargetLinkV1 {
+  string link = 1;
+}
+
+message ListRulesV1Request {
+}
+
+message ListRulesV1Response {
+  repeated RuleV1 rules = 1;
+}
+
+message CreateRuleV1Request {
+  RuleV1 rule = 1;
+}
+
+message CreateRuleV1Response {}
+
+message UpdateRuleV1Request {
+  string name = 1;
+  repeated RedirectV1 redirects = 2;
+  optional TargetLinkV1 default_link = 3;
+}
+
+message UpdateRuleV1Response {
+  RuleV1 rule = 1;
+}
+
+message DeleteRuleV1Request {
+  string name = 1;
+}
+
+message DeleteRuleV1Response {}
+
+message GetRuleV1Request {
+  string name = 1;
+}
+
+message GetRuleV1Response {
+  RuleV1 rule = 1;
+}

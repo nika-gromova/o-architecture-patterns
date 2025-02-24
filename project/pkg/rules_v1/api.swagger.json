@@ -1,0 +1,298 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "title": "api.proto",
+    "version": "version not set"
+  },
+  "tags": [
+    {
+      "name": "Rules"
+    }
+  ],
+  "consumes": [
+    "application/json"
+  ],
+  "produces": [
+    "application/json"
+  ],
+  "paths": {
+    "/api/v1/rules": {
+      "get": {
+        "operationId": "Rules_ListRulesV1",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/rulesListRulesV1Response"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "tags": [
+          "Rules"
+        ]
+      },
+      "post": {
+        "operationId": "Rules_CreateRuleV1",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/rulesCreateRuleV1Response"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/rulesCreateRuleV1Request"
+            }
+          }
+        ],
+        "tags": [
+          "Rules"
+        ]
+      }
+    },
+    "/api/v1/rules/{name}": {
+      "get": {
+        "operationId": "Rules_GetRuleV1",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/rulesGetRuleV1Response"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "name",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "Rules"
+        ]
+      },
+      "delete": {
+        "operationId": "Rules_DeleteRuleV1",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/rulesDeleteRuleV1Response"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "name",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "Rules"
+        ]
+      },
+      "put": {
+        "operationId": "Rules_UpdateRuleV1",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/rulesUpdateRuleV1Response"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "name",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/RulesUpdateRuleV1Body"
+            }
+          }
+        ],
+        "tags": [
+          "Rules"
+        ]
+      }
+    }
+  },
+  "definitions": {
+    "RulesUpdateRuleV1Body": {
+      "type": "object",
+      "properties": {
+        "redirects": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/rulesRedirectV1"
+          }
+        },
+        "defaultLink": {
+          "$ref": "#/definitions/rulesTargetLinkV1"
+        }
+      }
+    },
+    "protobufAny": {
+      "type": "object",
+      "properties": {
+        "@type": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": {}
+    },
+    "rpcStatus": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "details": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/protobufAny"
+          }
+        }
+      }
+    },
+    "rulesCreateRuleV1Request": {
+      "type": "object",
+      "properties": {
+        "rule": {
+          "$ref": "#/definitions/rulesRuleV1"
+        }
+      }
+    },
+    "rulesCreateRuleV1Response": {
+      "type": "object"
+    },
+    "rulesDeleteRuleV1Response": {
+      "type": "object"
+    },
+    "rulesFormulaV1": {
+      "type": "object",
+      "properties": {
+        "expression": {
+          "type": "string"
+        }
+      }
+    },
+    "rulesGetRuleV1Response": {
+      "type": "object",
+      "properties": {
+        "rule": {
+          "$ref": "#/definitions/rulesRuleV1"
+        }
+      }
+    },
+    "rulesListRulesV1Response": {
+      "type": "object",
+      "properties": {
+        "rules": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/rulesRuleV1"
+          }
+        }
+      }
+    },
+    "rulesRedirectV1": {
+      "type": "object",
+      "properties": {
+        "formula": {
+          "$ref": "#/definitions/rulesFormulaV1"
+        },
+        "targetLink": {
+          "$ref": "#/definitions/rulesTargetLinkV1"
+        }
+      }
+    },
+    "rulesRuleV1": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "redirects": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/rulesRedirectV1"
+          }
+        },
+        "defaultLink": {
+          "$ref": "#/definitions/rulesTargetLinkV1"
+        }
+      }
+    },
+    "rulesTargetLinkV1": {
+      "type": "object",
+      "properties": {
+        "link": {
+          "type": "string"
+        }
+      }
+    },
+    "rulesUpdateRuleV1Response": {
+      "type": "object",
+      "properties": {
+        "rule": {
+          "$ref": "#/definitions/rulesRuleV1"
+        }
+      }
+    }
+  }
+}
