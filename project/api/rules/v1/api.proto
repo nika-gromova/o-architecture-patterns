@@ -43,8 +43,9 @@ service Rules {
 
 message RuleV1 {
   string name = 1;
-  repeated RedirectV1 redirects = 2;
-  optional TargetLinkV1 default_link = 3;
+  string base_link = 2;
+  optional string default_link = 3;
+  repeated RedirectV1 redirects = 4;
 }
 
 message RedirectV1 {

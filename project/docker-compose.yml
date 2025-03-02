@@ -1,0 +1,44 @@
+version: "3.1"
+
+services:
+#  rules_app:
+#    image: rules
+#    environment:
+#      APP_NAME: rules
+#    ports:
+#      - "8080:8080"
+#      - "50051:50051"
+  my-keycloak:
+    image: quay.io/keycloak/keycloak:24.0
+    environment:
+      KC_HOSTNAME: localhost
+      KC_HOSTNAME_PORT: 7080
+      KC_HOSTNAME_STRICT_BACKCHANNEL: "true"
+      KEYCLOAK_ADMIN: admin
+      KEYCLOAK_ADMIN_PASSWORD: admin
+      KC_HEALTH_ENABLED: "true"
+      KC_LOG_LEVEL: info
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:7080/health/ready" ]
+      interval: 15s
+      timeout: 2s
+      retries: 15
+    command: [ "start-dev", "--http-port", "7080", "--https-port", "7443" ]
+    ports:
+      - "7080:7080"
+      - "7443:7443"
+    networks:
+      - local_network
+#  jaeger:
+#    image: jaegertracing/all-in-one
+#    ports:
+#      - 5776:5775/udp
+#      - 6831:6831/udp
+#      - 6832:6832/udp
+#      - 5778:5778
+#      - 16686:16686 # web
+#      - 14268:14268
+#      - 9411:9411
+networks:
+  local_network:
+    driver: bridge
