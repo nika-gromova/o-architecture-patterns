@@ -1,10 +1,12 @@
 package formula
 
 import (
+	"context"
 	"fmt"
 
 	"github.com/nika-gromova/o-architecture-patterns/project/internal/formula/interpreter"
 	"github.com/nika-gromova/o-architecture-patterns/project/internal/models"
+	"github.com/nika-gromova/o-architecture-patterns/project/libs/ioc"
 )
 
 type Parser interface {
@@ -16,7 +18,6 @@ type Formula struct {
 	parser              Parser
 	context             models.InterpreterContext[any]
 	knownVariableTokens map[string]struct{}
-	ioc                 map[string]interpreter.Comparable
 }
 
 func (f *Formula) Evaluate() (bool, error) {
@@ -25,7 +26,7 @@ func (f *Formula) Evaluate() (bool, error) {
 		return false, err
 	}
 
-	expression, err := f.buildExpression(parsed)
+	expression, err := f.buildExpression(context.Background(), parsed) // TODO
 	if err != nil {
 		return false, err
 	}
@@ -33,31 +34,33 @@ func (f *Formula) Evaluate() (bool, error) {
 	return expression.Interpret(f.context)
 }
 
-func (f *Formula) buildExpression(node *models.ParsingNode) (interpreter.AbstractExpression[any], error) {
+func (f *Formula) buildExpression(ctx context.Context, node *models.ParsingNode) (interpreter.AbstractExpression[any], error) {
 	if !node.IsOperator || node.Left == nil || node.Right == nil {
 		return &interpreter.NilExpression[any]{}, nil
 	}
 
-	return f.toExpression(node.Value, node.Left, node.Left)
+	return f.toExpression(ctx, node.Value, node.Left, node.Right)
 }
 
-func (f *Formula) toExpression(operator string, left *models.ParsingNode, right *models.ParsingNode) (interpreter.AbstractExpression[any], error) {
+func (f *Formula) toExpression(ctx context.Context, operator string, left *models.ParsingNode, right *models.ParsingNode) (interpreter.AbstractExpression[any], error) {
 	var (
-		leftExpression, rightExpression interpreter.AbstractExpression[any]
+		leftExpression, rightExpression any
 		err                             error
 	)
 
 	if left.IsOperator {
-		leftExpression, err = f.toExpression(left.Value, left.Left, left.Right)
+		leftExpression, err = f.toExpression(ctx, left.Value, left.Left, left.Right)
 		if err != nil {
 			return nil, err
 		}
-	} else if right.IsOperator {
-		rightExpression, err = f.toExpression(right.Value, right.Left, right.Right)
+	}
+	if right.IsOperator {
+		rightExpression, err = f.toExpression(ctx, right.Value, right.Left, right.Right)
 		if err != nil {
 			return nil, err
 		}
-	} else {
+	}
+	if !left.IsOperator && !right.IsOperator {
 		var variableName string
 		if _, known := f.knownVariableTokens[left.Value]; known {
 			variableName = left.Value
@@ -68,63 +71,38 @@ func (f *Formula) toExpression(operator string, left *models.ParsingNode, right 
 		if variableName == "" {
 			return nil, fmt.Errorf("invalid operands: %s, %s", left.Value, right.Value)
 		}
-		var leftValue, rightValue interpreter.ComparableInterpreter[any]
-		// leftValue = &interpreter.Variable[any]{
-		//				Name: left.Value,
-		//			}
-		// rightValue = &interpreter.Variable[any]{
-		//				Name: right.Value,
-		//			}
 
-		// TODO create ioc container, IoC.Resolve("Variables.VariableName", value) any
-
-		if leftValue == nil {
-			leftValue = &interpreter.Const[any]{
-				Value: f.ioc[variableName], // (left.value)// TODO create ioc container, IoC.Resolve("VariableName", value) Comparable
-			}
+		leftExpression, err = ioc.Resolve(ctx, "Formula.Interpreter.Variables."+variableName, left.Value)
+		if err != nil {
+			return nil, err
 		}
-		if rightValue == nil {
-			rightValue = &interpreter.Const[any]{
-				Value: f.ioc[variableName], // (right.Value)// TODO create ioc container, IoC.Resolve("VariableName", value) Comparable
-			}
-		}
-
-		// TODO ioc.Resolve("Operators.>", left, right) AbstractExpression
-		// inside ioc convert any to needed interface or return error
-		switch operator {
-		case models.GraterOperator:
-			return &interpreter.GraterExpression[any]{
-				Left:  leftValue,
-				Right: rightValue,
-			}, nil
-		case models.LessOperator:
-			return &interpreter.LessExpression[any]{
-				Left:  leftValue,
-				Right: rightValue,
-			}, nil
-		case models.EqualOperator:
-			return &interpreter.EqualExpression[any]{
-				Left:  leftValue,
-				Right: rightValue,
-			}, nil
-		default:
-			return nil, fmt.Errorf("invalid operator: %s", operator)
+		rightExpression, err = ioc.Resolve(ctx, "Formula.Interpreter.Variables."+variableName, right.Value)
+		if err != nil {
+			return nil, err
 		}
 	}
 
-	// TODO ioc.Resolve("Operators.AND", leftExpression, rightExpression) AbstractExpression
-	if operator == models.OrOperator {
-		return &interpreter.OrExpression[any]{
-			Left:  leftExpression,
-			Right: rightExpression,
-		}, nil
+	if leftExpression == nil {
+		leftExpression = &interpreter.NilExpression[any]{}
 	}
-	if operator == models.ANDOperator {
-		return &interpreter.AndExpression[any]{
-			Left:  leftExpression,
-			Right: rightExpression,
-		}, nil
+	if rightExpression == nil {
+		rightExpression = &interpreter.NilExpression[any]{}
 	}
 
-	return nil, fmt.Errorf("invalid operator: %s", operator)
+	var (
+		result    interpreter.AbstractExpression[any]
+		tmpResult any
+		ok        bool
+	)
+
+	tmpResult, err = ioc.Resolve(ctx, fmt.Sprintf("Formula.Interpreter.Operators.%s", operator), leftExpression, rightExpression)
+	if err != nil {
+		return nil, err
+	}
+
+	result, ok = tmpResult.(interpreter.AbstractExpression[any])
+	if !ok {
+		return nil, fmt.Errorf("failed to convert result expression to abstract, operator: %s", operator)
+	}
+	return result, nil
 }

@@ -54,14 +54,8 @@ func (oe *OrExpression[T]) Interpret(context models.InterpreterContext[T]) (bool
 	return left || right, nil
 }
 
-type Comparable interface {
-	Equals(value Comparable) bool
-	GreaterThan(value Comparable) bool
-	LessThan(value Comparable) bool
-}
-
 type ComparableInterpreter[T any] interface {
-	InterpretComparable(context models.InterpreterContext[T]) (Comparable, error)
+	InterpretComparable(context models.InterpreterContext[T]) (models.Comparable, error)
 }
 
 type GraterExpression[T any] struct {
@@ -119,12 +113,12 @@ type Variable[T any] struct {
 	Name string
 }
 
-func (v Variable[T]) InterpretComparable(context models.InterpreterContext[T]) (Comparable, error) {
+func (v Variable[T]) InterpretComparable(context models.InterpreterContext[T]) (models.Comparable, error) {
 	value, err := context.GetValue(v.Name)
 	if err != nil {
 		return nil, err
 	}
-	valueConverted, ok := any(value).(Comparable)
+	valueConverted, ok := any(value).(models.Comparable)
 	if !ok {
 		return nil, ErrTypeConversion
 	}
@@ -132,9 +126,9 @@ func (v Variable[T]) InterpretComparable(context models.InterpreterContext[T]) (
 }
 
 type Const[T any] struct {
-	Value Comparable
+	Value models.Comparable
 }
 
-func (c *Const[T]) InterpretComparable(_ models.InterpreterContext[T]) (Comparable, error) {
+func (c *Const[T]) InterpretComparable(_ models.InterpreterContext[T]) (models.Comparable, error) {
 	return c.Value, nil
 }
