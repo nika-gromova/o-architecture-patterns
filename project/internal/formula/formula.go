@@ -26,7 +26,7 @@ func (f *Formula) Evaluate() (bool, error) {
 		return false, err
 	}
 
-	expression, err := f.buildExpression(context.Background(), parsed) // TODO
+	expression, err := f.buildExpression(context.Background(), parsed) // TODO initialize IOC container ctx
 	if err != nil {
 		return false, err
 	}

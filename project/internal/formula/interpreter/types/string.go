@@ -6,7 +6,7 @@ type StringType struct {
 	Value string
 }
 
-func (s StringType) Equals(value models.Comparable) bool {
+func (s *StringType) Equals(value models.Comparable) bool {
 	str, ok := value.(*StringType)
 	if !ok {
 		return false
@@ -17,10 +17,10 @@ func (s StringType) Equals(value models.Comparable) bool {
 	return str.Value == s.Value
 }
 
-func (s StringType) GreaterThan(_ models.Comparable) bool {
+func (s *StringType) GreaterThan(_ models.Comparable) bool {
 	return false
 }
 
-func (s StringType) LessThan(_ models.Comparable) bool {
+func (s *StringType) LessThan(_ models.Comparable) bool {
 	return false
 }
