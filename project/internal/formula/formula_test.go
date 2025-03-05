@@ -1,10 +1,10 @@
 package formula
 
 import (
+	"context"
 	"testing"
 
 	"github.com/nika-gromova/o-architecture-patterns/project/internal/formula/interpreter"
-	"github.com/nika-gromova/o-architecture-patterns/project/internal/formula/ioc"
 	"github.com/nika-gromova/o-architecture-patterns/project/internal/models"
 	"github.com/nika-gromova/o-architecture-patterns/project/internal/models/types"
 	"github.com/nika-gromova/o-architecture-patterns/project/tests/mocks"
@@ -137,7 +137,13 @@ func TestFormula_buildExpression(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			ctx, err := ioc.InitForFormula()
+			registrar := &IoCFormulaOperatorsRegistrar{
+				next: &IoCFormulaStringVariableRegistrar{
+					variableName: "Locale",
+				},
+			}
+
+			ctx, err := registrar.Register(context.Background())
 			require.NoError(t, err)
 
 			f := &Formula{

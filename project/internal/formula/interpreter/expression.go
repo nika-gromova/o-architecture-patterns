@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/nika-gromova/o-architecture-patterns/project/internal/models"
 	"github.com/nika-gromova/o-architecture-patterns/project/libs/ioc"
 )
 
@@ -44,7 +45,7 @@ func (ns *NodeOperator) ToExpression(ctx context.Context) (any, error) {
 		right = &NilExpression[any]{}
 	}
 
-	expression, err := ioc.Resolve(ctx, fmt.Sprintf("Formula.Interpreter.Operators.%s", ns.Value), left, right)
+	expression, err := ioc.Resolve(ctx, models.IoCFormulaInterpreterOperatorsDomain+ns.Value, left, right)
 	if err != nil {
 		return nil, err
 	}
@@ -65,7 +66,7 @@ func (nl *NodeLeaf) ToExpression(ctx context.Context) (any, error) {
 		return nil, fmt.Errorf("invalid operand: %s", nl.Value)
 	}
 
-	expr, err := ioc.Resolve(ctx, "Formula.Interpreter.Variables."+nl.VariableName, nl.Value)
+	expr, err := ioc.Resolve(ctx, models.IoCFormulaInterpreterVariablesDomain+nl.VariableName, nl.Value)
 	if err != nil {
 		return nil, err
 	}

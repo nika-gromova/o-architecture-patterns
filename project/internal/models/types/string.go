@@ -8,6 +8,12 @@ type StringType struct {
 	Value string
 }
 
+func NewStringTypeFromString(s string) (*StringType, error) {
+	return &StringType{
+		Value: s,
+	}, nil
+}
+
 func (s *StringType) Equals(value Comparable) bool {
 	str, ok := value.(*StringType)
 	if !ok {

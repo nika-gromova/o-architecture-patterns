@@ -3,7 +3,6 @@ package data
 import (
 	"context"
 	"fmt"
-	"time"
 
 	logger "github.com/sirupsen/logrus"
 
@@ -51,17 +50,9 @@ func NewFromRequest(ctx context.Context, request models.Request) (*RequestData, 
 }
 
 func ConvertLocaleHeader(value string) (any, error) {
-	return &types.StringType{
-		Value: value,
-	}, nil
+	return types.NewStringTypeFromString(value)
 }
 
 func ConvertDateHeader(value string) (any, error) {
-	result, err := time.Parse(time.RFC1123, value)
-	if err != nil {
-		return nil, err
-	}
-	return &types.DateTimeType{
-		Value: result,
-	}, nil
+	return types.NewDateTimeTypeFromString(value)
 }

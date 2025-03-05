@@ -8,8 +8,18 @@ type DateTimeType struct {
 	Value time.Time
 }
 
+func NewDateTimeTypeFromString(str string) (*DateTimeType, error) {
+	result, err := time.Parse(time.RFC1123, str)
+	if err != nil {
+		return nil, err
+	}
+	return &DateTimeType{
+		Value: result,
+	}, nil
+}
+
 func (dt *DateTimeType) Equals(value Comparable) bool {
-	valueTime := convertTime(value)
+	valueTime := convertTimeFromAny(value)
 
 	if valueTime.IsZero() {
 		return false
@@ -18,7 +28,7 @@ func (dt *DateTimeType) Equals(value Comparable) bool {
 }
 
 func (dt *DateTimeType) GreaterThan(value Comparable) bool {
-	valueTime := convertTime(value)
+	valueTime := convertTimeFromAny(value)
 
 	if valueTime.IsZero() {
 		return false
@@ -27,7 +37,7 @@ func (dt *DateTimeType) GreaterThan(value Comparable) bool {
 }
 
 func (dt *DateTimeType) LessThan(value Comparable) bool {
-	valueTime := convertTime(value)
+	valueTime := convertTimeFromAny(value)
 
 	if valueTime.IsZero() {
 		return false
@@ -35,7 +45,7 @@ func (dt *DateTimeType) LessThan(value Comparable) bool {
 	return dt.Value.Before(valueTime)
 }
 
-func convertTime(value any) time.Time {
+func convertTimeFromAny(value any) time.Time {
 	var result time.Time
 	valueTime, ok := value.(*DateTimeType)
 	if !ok {
