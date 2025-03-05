@@ -5,12 +5,13 @@ import (
 	"testing"
 
 	"github.com/nika-gromova/o-architecture-patterns/project/internal/models"
+	"github.com/nika-gromova/o-architecture-patterns/project/internal/models/types"
 	"github.com/stretchr/testify/require"
 )
 
 type testType int
 
-func (t testType) Equals(value Comparable) bool {
+func (t testType) Equals(value types.Comparable) bool {
 	r, ok := value.(testType)
 	if !ok {
 		return false
@@ -18,7 +19,7 @@ func (t testType) Equals(value Comparable) bool {
 	return t == r
 }
 
-func (t testType) GreaterThan(value Comparable) bool {
+func (t testType) GreaterThan(value types.Comparable) bool {
 	r, ok := value.(testType)
 	if !ok {
 		return false
@@ -26,7 +27,7 @@ func (t testType) GreaterThan(value Comparable) bool {
 	return t > r
 }
 
-func (t testType) LessThan(value Comparable) bool {
+func (t testType) LessThan(value types.Comparable) bool {
 	r, ok := value.(testType)
 	if !ok {
 		return false
@@ -50,7 +51,7 @@ func Test_Interpret(t *testing.T) {
 	type testCase[T testType] struct {
 		name       string
 		expression AbstractExpression[T]
-		context    models.InterpreterContext[T]
+		context    models.Data[T]
 		want       bool
 		wantErr    bool
 	}

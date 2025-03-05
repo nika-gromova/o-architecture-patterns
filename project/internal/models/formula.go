@@ -12,14 +12,8 @@ type ParsingNode struct {
 	Right      *ParsingNode
 }
 
-type InterpreterContext[T any] interface {
+type Data[T any] interface {
 	GetValue(key string) (T, error)
-}
-
-type Comparable interface {
-	Equals(value Comparable) bool
-	GreaterThan(value Comparable) bool
-	LessThan(value Comparable) bool
 }
 
 const (

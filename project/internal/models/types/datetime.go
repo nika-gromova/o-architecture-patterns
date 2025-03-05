@@ -2,15 +2,13 @@ package types
 
 import (
 	"time"
-
-	"github.com/nika-gromova/o-architecture-patterns/project/internal/models"
 )
 
 type DateTimeType struct {
 	Value time.Time
 }
 
-func (dt *DateTimeType) Equals(value models.Comparable) bool {
+func (dt *DateTimeType) Equals(value Comparable) bool {
 	valueTime := convertTime(value)
 
 	if valueTime.IsZero() {
@@ -19,7 +17,7 @@ func (dt *DateTimeType) Equals(value models.Comparable) bool {
 	return dt.Value.Equal(valueTime)
 }
 
-func (dt *DateTimeType) GreaterThan(value models.Comparable) bool {
+func (dt *DateTimeType) GreaterThan(value Comparable) bool {
 	valueTime := convertTime(value)
 
 	if valueTime.IsZero() {
@@ -28,7 +26,7 @@ func (dt *DateTimeType) GreaterThan(value models.Comparable) bool {
 	return dt.Value.After(valueTime)
 }
 
-func (dt *DateTimeType) LessThan(value models.Comparable) bool {
+func (dt *DateTimeType) LessThan(value Comparable) bool {
 	valueTime := convertTime(value)
 
 	if valueTime.IsZero() {

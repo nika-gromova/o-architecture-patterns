@@ -5,8 +5,8 @@ import (
 	"fmt"
 
 	"github.com/nika-gromova/o-architecture-patterns/project/internal/formula/interpreter"
-	"github.com/nika-gromova/o-architecture-patterns/project/internal/formula/interpreter/types"
 	"github.com/nika-gromova/o-architecture-patterns/project/internal/models"
+	"github.com/nika-gromova/o-architecture-patterns/project/internal/models/types"
 	"github.com/nika-gromova/o-architecture-patterns/project/libs/ioc"
 )
 

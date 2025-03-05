@@ -6,103 +6,111 @@ import (
 
 	"github.com/nika-gromova/o-architecture-patterns/project/internal/formula/interpreter"
 	"github.com/nika-gromova/o-architecture-patterns/project/internal/models"
-	"github.com/nika-gromova/o-architecture-patterns/project/libs/ioc"
 )
 
 type Parser interface {
 	Parse(input string) (*models.ParsingNode, error)
 }
 
+type Storage interface {
+	IsKnownVariableToken(string) bool
+}
+
+type Cache interface {
+	Set(key string, expression interpreter.AbstractExpression[any])
+	Get(key string) (expression interpreter.AbstractExpression[any])
+}
+
 type Formula struct {
-	text                string
-	parser              Parser
-	context             models.InterpreterContext[any]
-	knownVariableTokens map[string]struct{}
+	parser  Parser
+	storage Storage
+	cache   Cache
 }
 
-func (f *Formula) Evaluate() (bool, error) {
-	parsed, err := f.parser.Parse(f.text)
-	if err != nil {
-		return false, err
+func New(parser Parser, storage Storage, cache Cache) *Formula {
+	return &Formula{
+		parser:  parser,
+		storage: storage,
+		cache:   cache,
 	}
-
-	expression, err := f.buildExpression(context.Background(), parsed) // TODO initialize IOC container ctx
-	if err != nil {
-		return false, err
-	}
-
-	return expression.Interpret(f.context)
 }
 
-func (f *Formula) buildExpression(ctx context.Context, node *models.ParsingNode) (interpreter.AbstractExpression[any], error) {
-	if !node.IsOperator || node.Left == nil || node.Right == nil {
-		return &interpreter.NilExpression[any]{}, nil
+func (f *Formula) Evaluate(ctx context.Context, input string, data models.Data[any]) (bool, error) {
+	expression := f.cache.Get(input)
+	if expression == nil {
+		var err error
+		expression, err = f.buildExpression(ctx, input)
+		if err != nil {
+			return false, fmt.Errorf("failed to build expression for `%s`: %w", input, err)
+		}
+		f.cache.Set(input, expression)
 	}
 
-	return f.toExpression(ctx, node.Value, node.Left, node.Right)
+	return expression.Interpret(data)
 }
 
-func (f *Formula) toExpression(ctx context.Context, operator string, left *models.ParsingNode, right *models.ParsingNode) (interpreter.AbstractExpression[any], error) {
-	var (
-		leftExpression, rightExpression any
-		err                             error
-	)
-
-	if left.IsOperator {
-		leftExpression, err = f.toExpression(ctx, left.Value, left.Left, left.Right)
-		if err != nil {
-			return nil, err
-		}
-	}
-	if right.IsOperator {
-		rightExpression, err = f.toExpression(ctx, right.Value, right.Left, right.Right)
-		if err != nil {
-			return nil, err
-		}
-	}
-	if !left.IsOperator && !right.IsOperator {
-		var variableName string
-		if _, known := f.knownVariableTokens[left.Value]; known {
-			variableName = left.Value
-		}
-		if _, known := f.knownVariableTokens[right.Value]; known {
-			variableName = right.Value
-		}
-		if variableName == "" {
-			return nil, fmt.Errorf("invalid operands: %s, %s", left.Value, right.Value)
-		}
-
-		leftExpression, err = ioc.Resolve(ctx, "Formula.Interpreter.Variables."+variableName, left.Value)
-		if err != nil {
-			return nil, err
-		}
-		rightExpression, err = ioc.Resolve(ctx, "Formula.Interpreter.Variables."+variableName, right.Value)
-		if err != nil {
-			return nil, err
-		}
-	}
-
-	if leftExpression == nil {
-		leftExpression = &interpreter.NilExpression[any]{}
-	}
-	if rightExpression == nil {
-		rightExpression = &interpreter.NilExpression[any]{}
-	}
-
-	var (
-		result    interpreter.AbstractExpression[any]
-		tmpResult any
-		ok        bool
-	)
-
-	tmpResult, err = ioc.Resolve(ctx, fmt.Sprintf("Formula.Interpreter.Operators.%s", operator), leftExpression, rightExpression)
+func (f *Formula) buildExpression(ctx context.Context, input string) (interpreter.AbstractExpression[any], error) {
+	parsed, err := f.parser.Parse(input)
 	if err != nil {
 		return nil, err
 	}
 
-	result, ok = tmpResult.(interpreter.AbstractExpression[any])
+	expression, err := f.toExpressionNode(parsed).ToExpression(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	result, ok := expression.(interpreter.AbstractExpression[any])
 	if !ok {
-		return nil, fmt.Errorf("failed to convert result expression to abstract, operator: %s", operator)
+		return nil, fmt.Errorf("failed to convert result expression to abstract, input: %s", input)
 	}
 	return result, nil
+}
+
+func (f *Formula) toExpressionNode(node *models.ParsingNode) interpreter.ExpressionNode {
+	if !node.IsOperator || node.Left == nil || node.Right == nil {
+		return nil
+	}
+
+	return f.toExpression(node.Value, node.Left, node.Right)
+}
+
+func (f *Formula) toExpression(operator string, left *models.ParsingNode, right *models.ParsingNode) interpreter.ExpressionNode {
+	var leftExpression, rightExpression interpreter.ExpressionNode
+
+	if left.IsOperator {
+		leftExpression = f.toExpression(left.Value, left.Left, left.Right)
+	}
+	if right.IsOperator {
+		rightExpression = f.toExpression(right.Value, right.Left, right.Right)
+	}
+	if !left.IsOperator && !right.IsOperator {
+		// determine the variable - time, locale, etc
+		var variableName string
+		if f.storage.IsKnownVariableToken(left.Value) {
+			variableName = left.Value
+		}
+		if f.storage.IsKnownVariableToken(right.Value) {
+			variableName = right.Value
+		}
+
+		if variableName == "" {
+			return nil
+		}
+
+		leftExpression = &interpreter.NodeLeaf{
+			Value:        left.Value,
+			VariableName: variableName,
+		}
+		rightExpression = &interpreter.NodeLeaf{
+			Value:        right.Value,
+			VariableName: variableName,
+		}
+	}
+
+	return &interpreter.NodeOperator{
+		Value: operator,
+		Left:  leftExpression,
+		Right: rightExpression,
+	}
 }
