@@ -146,7 +146,7 @@ func TestFormula_buildExpression(t *testing.T) {
 			ctx, err := registrar.Register(context.Background())
 			require.NoError(t, err)
 
-			f := &Formula{
+			f := &Processor{
 				storage: &testStorage{
 					knownVariableTokens: tt.fields.knownVariableTokens,
 				},
@@ -279,7 +279,7 @@ func TestFormula_toExpressionNode(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			f := &Formula{
+			f := &Processor{
 				storage: &testStorage{
 					knownVariableTokens: tt.fields.knownVariableTokens,
 				},

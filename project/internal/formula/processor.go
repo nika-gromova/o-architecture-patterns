@@ -21,41 +21,41 @@ type Cache interface {
 	Get(key string) (expression interpreter.AbstractExpression[any])
 }
 
-type Formula struct {
+type Processor struct {
 	parser  Parser
 	storage Storage
 	cache   Cache
 }
 
-func New(parser Parser, storage Storage, cache Cache) *Formula {
-	return &Formula{
+func New(parser Parser, storage Storage, cache Cache) *Processor {
+	return &Processor{
 		parser:  parser,
 		storage: storage,
 		cache:   cache,
 	}
 }
 
-func (f *Formula) Evaluate(ctx context.Context, input string, data models.Data[any]) (bool, error) {
-	expression := f.cache.Get(input)
+func (p *Processor) Evaluate(ctx context.Context, input string, data models.Data[any]) (bool, error) {
+	expression := p.cache.Get(input)
 	if expression == nil {
 		var err error
-		expression, err = f.buildExpression(ctx, input)
+		expression, err = p.buildExpression(ctx, input)
 		if err != nil {
 			return false, fmt.Errorf("failed to build expression for `%s`: %w", input, err)
 		}
-		f.cache.Set(input, expression)
+		p.cache.Set(input, expression)
 	}
 
 	return expression.Interpret(data)
 }
 
-func (f *Formula) buildExpression(ctx context.Context, input string) (interpreter.AbstractExpression[any], error) {
-	parsed, err := f.parser.Parse(input)
+func (p *Processor) buildExpression(ctx context.Context, input string) (interpreter.AbstractExpression[any], error) {
+	parsed, err := p.parser.Parse(input)
 	if err != nil {
 		return nil, err
 	}
 
-	expression, err := f.toExpressionNode(parsed).ToExpression(ctx)
+	expression, err := p.toExpressionNode(parsed).ToExpression(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -67,30 +67,30 @@ func (f *Formula) buildExpression(ctx context.Context, input string) (interprete
 	return result, nil
 }
 
-func (f *Formula) toExpressionNode(node *models.ParsingNode) interpreter.ExpressionNode {
+func (p *Processor) toExpressionNode(node *models.ParsingNode) interpreter.ExpressionNode {
 	if !node.IsOperator || node.Left == nil || node.Right == nil {
 		return nil
 	}
 
-	return f.toExpression(node.Value, node.Left, node.Right)
+	return p.toExpression(node.Value, node.Left, node.Right)
 }
 
-func (f *Formula) toExpression(operator string, left *models.ParsingNode, right *models.ParsingNode) interpreter.ExpressionNode {
+func (p *Processor) toExpression(operator string, left *models.ParsingNode, right *models.ParsingNode) interpreter.ExpressionNode {
 	var leftExpression, rightExpression interpreter.ExpressionNode
 
 	if left.IsOperator {
-		leftExpression = f.toExpression(left.Value, left.Left, left.Right)
+		leftExpression = p.toExpression(left.Value, left.Left, left.Right)
 	}
 	if right.IsOperator {
-		rightExpression = f.toExpression(right.Value, right.Left, right.Right)
+		rightExpression = p.toExpression(right.Value, right.Left, right.Right)
 	}
 	if !left.IsOperator && !right.IsOperator {
 		// determine the variable - time, locale, etc
 		var variableName string
-		if f.storage.IsKnownVariableToken(left.Value) {
+		if p.storage.IsKnownVariableToken(left.Value) {
 			variableName = left.Value
 		}
-		if f.storage.IsKnownVariableToken(right.Value) {
+		if p.storage.IsKnownVariableToken(right.Value) {
 			variableName = right.Value
 		}
 
