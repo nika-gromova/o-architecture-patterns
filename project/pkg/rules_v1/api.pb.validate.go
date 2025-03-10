@@ -58,6 +58,8 @@ func (m *RuleV1) validate(all bool) error {
 
 	// no validation rules for Name
 
+	// no validation rules for BaseLink
+
 	for idx, item := range m.GetRedirects() {
 		_, _ = idx, item
 
@@ -93,36 +95,7 @@ func (m *RuleV1) validate(all bool) error {
 	}
 
 	if m.DefaultLink != nil {
-
-		if all {
-			switch v := interface{}(m.GetDefaultLink()).(type) {
-			case interface{ ValidateAll() error }:
-				if err := v.ValidateAll(); err != nil {
-					errors = append(errors, RuleV1ValidationError{
-						field:  "DefaultLink",
-						reason: "embedded message failed validation",
-						cause:  err,
-					})
-				}
-			case interface{ Validate() error }:
-				if err := v.Validate(); err != nil {
-					errors = append(errors, RuleV1ValidationError{
-						field:  "DefaultLink",
-						reason: "embedded message failed validation",
-						cause:  err,
-					})
-				}
-			}
-		} else if v, ok := interface{}(m.GetDefaultLink()).(interface{ Validate() error }); ok {
-			if err := v.Validate(); err != nil {
-				return RuleV1ValidationError{
-					field:  "DefaultLink",
-					reason: "embedded message failed validation",
-					cause:  err,
-				}
-			}
-		}
-
+		// no validation rules for DefaultLink
 	}
 
 	if len(errors) > 0 {
@@ -560,141 +533,6 @@ var _ interface {
 	Cause() error
 	ErrorName() string
 } = TargetLinkV1ValidationError{}
-
-// Validate checks the field values on ConditionV1 with the rules defined in
-// the proto definition for this message. If any rules are violated, the first
-// error encountered is returned, or nil if there are no violations.
-func (m *ConditionV1) Validate() error {
-	return m.validate(false)
-}
-
-// ValidateAll checks the field values on ConditionV1 with the rules defined in
-// the proto definition for this message. If any rules are violated, the
-// result is a list of violation errors wrapped in ConditionV1MultiError, or
-// nil if none found.
-func (m *ConditionV1) ValidateAll() error {
-	return m.validate(true)
-}
-
-func (m *ConditionV1) validate(all bool) error {
-	if m == nil {
-		return nil
-	}
-
-	var errors []error
-
-	// no validation rules for Key
-
-	for idx, item := range m.GetValues() {
-		_, _ = idx, item
-
-		if all {
-			switch v := interface{}(item).(type) {
-			case interface{ ValidateAll() error }:
-				if err := v.ValidateAll(); err != nil {
-					errors = append(errors, ConditionV1ValidationError{
-						field:  fmt.Sprintf("Values[%v]", idx),
-						reason: "embedded message failed validation",
-						cause:  err,
-					})
-				}
-			case interface{ Validate() error }:
-				if err := v.Validate(); err != nil {
-					errors = append(errors, ConditionV1ValidationError{
-						field:  fmt.Sprintf("Values[%v]", idx),
-						reason: "embedded message failed validation",
-						cause:  err,
-					})
-				}
-			}
-		} else if v, ok := interface{}(item).(interface{ Validate() error }); ok {
-			if err := v.Validate(); err != nil {
-				return ConditionV1ValidationError{
-					field:  fmt.Sprintf("Values[%v]", idx),
-					reason: "embedded message failed validation",
-					cause:  err,
-				}
-			}
-		}
-
-	}
-
-	if len(errors) > 0 {
-		return ConditionV1MultiError(errors)
-	}
-
-	return nil
-}
-
-// ConditionV1MultiError is an error wrapping multiple validation errors
-// returned by ConditionV1.ValidateAll() if the designated constraints aren't met.
-type ConditionV1MultiError []error
-
-// Error returns a concatenation of all the error messages it wraps.
-func (m ConditionV1MultiError) Error() string {
-	msgs := make([]string, 0, len(m))
-	for _, err := range m {
-		msgs = append(msgs, err.Error())
-	}
-	return strings.Join(msgs, "; ")
-}
-
-// AllErrors returns a list of validation violation errors.
-func (m ConditionV1MultiError) AllErrors() []error { return m }
-
-// ConditionV1ValidationError is the validation error returned by
-// ConditionV1.Validate if the designated constraints aren't met.
-type ConditionV1ValidationError struct {
-	field  string
-	reason string
-	cause  error
-	key    bool
-}
-
-// Field function returns field value.
-func (e ConditionV1ValidationError) Field() string { return e.field }
-
-// Reason function returns reason value.
-func (e ConditionV1ValidationError) Reason() string { return e.reason }
-
-// Cause function returns cause value.
-func (e ConditionV1ValidationError) Cause() error { return e.cause }
-
-// Key function returns key value.
-func (e ConditionV1ValidationError) Key() bool { return e.key }
-
-// ErrorName returns error name.
-func (e ConditionV1ValidationError) ErrorName() string { return "ConditionV1ValidationError" }
-
-// Error satisfies the builtin error interface
-func (e ConditionV1ValidationError) Error() string {
-	cause := ""
-	if e.cause != nil {
-		cause = fmt.Sprintf(" | caused by: %v", e.cause)
-	}
-
-	key := ""
-	if e.key {
-		key = "key for "
-	}
-
-	return fmt.Sprintf(
-		"invalid %sConditionV1.%s: %s%s",
-		key,
-		e.field,
-		e.reason,
-		cause)
-}
-
-var _ error = ConditionV1ValidationError{}
-
-var _ interface {
-	Field() string
-	Reason() string
-	Key() bool
-	Cause() error
-	ErrorName() string
-} = ConditionV1ValidationError{}
 
 // Validate checks the field values on ListRulesV1Request with the rules
 // defined in the proto definition for this message. If any rules are
@@ -1908,114 +1746,44 @@ var _ interface {
 	ErrorName() string
 } = GetRuleV1ResponseValidationError{}
 
-// Validate checks the field values on ConditionV1_Value with the rules defined
-// in the proto definition for this message. If any rules are violated, the
-// first error encountered is returned, or nil if there are no violations.
-func (m *ConditionV1_Value) Validate() error {
+// Validate checks the field values on GetRedirectV1Request with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *GetRedirectV1Request) Validate() error {
 	return m.validate(false)
 }
 
-// ValidateAll checks the field values on ConditionV1_Value with the rules
+// ValidateAll checks the field values on GetRedirectV1Request with the rules
 // defined in the proto definition for this message. If any rules are
 // violated, the result is a list of violation errors wrapped in
-// ConditionV1_ValueMultiError, or nil if none found.
-func (m *ConditionV1_Value) ValidateAll() error {
+// GetRedirectV1RequestMultiError, or nil if none found.
+func (m *GetRedirectV1Request) ValidateAll() error {
 	return m.validate(true)
 }
 
-func (m *ConditionV1_Value) validate(all bool) error {
+func (m *GetRedirectV1Request) validate(all bool) error {
 	if m == nil {
 		return nil
 	}
 
 	var errors []error
 
-	// no validation rules for Operation
-
-	switch v := m.Value.(type) {
-	case *ConditionV1_Value_Text:
-		if v == nil {
-			err := ConditionV1_ValueValidationError{
-				field:  "Value",
-				reason: "oneof value cannot be a typed-nil",
-			}
-			if !all {
-				return err
-			}
-			errors = append(errors, err)
-		}
-		// no validation rules for Text
-	case *ConditionV1_Value_Number:
-		if v == nil {
-			err := ConditionV1_ValueValidationError{
-				field:  "Value",
-				reason: "oneof value cannot be a typed-nil",
-			}
-			if !all {
-				return err
-			}
-			errors = append(errors, err)
-		}
-		// no validation rules for Number
-	case *ConditionV1_Value_Timestamp:
-		if v == nil {
-			err := ConditionV1_ValueValidationError{
-				field:  "Value",
-				reason: "oneof value cannot be a typed-nil",
-			}
-			if !all {
-				return err
-			}
-			errors = append(errors, err)
-		}
-
-		if all {
-			switch v := interface{}(m.GetTimestamp()).(type) {
-			case interface{ ValidateAll() error }:
-				if err := v.ValidateAll(); err != nil {
-					errors = append(errors, ConditionV1_ValueValidationError{
-						field:  "Timestamp",
-						reason: "embedded message failed validation",
-						cause:  err,
-					})
-				}
-			case interface{ Validate() error }:
-				if err := v.Validate(); err != nil {
-					errors = append(errors, ConditionV1_ValueValidationError{
-						field:  "Timestamp",
-						reason: "embedded message failed validation",
-						cause:  err,
-					})
-				}
-			}
-		} else if v, ok := interface{}(m.GetTimestamp()).(interface{ Validate() error }); ok {
-			if err := v.Validate(); err != nil {
-				return ConditionV1_ValueValidationError{
-					field:  "Timestamp",
-					reason: "embedded message failed validation",
-					cause:  err,
-				}
-			}
-		}
-
-	default:
-		_ = v // ensures v is used
-	}
+	// no validation rules for Url
 
 	if len(errors) > 0 {
-		return ConditionV1_ValueMultiError(errors)
+		return GetRedirectV1RequestMultiError(errors)
 	}
 
 	return nil
 }
 
-// ConditionV1_ValueMultiError is an error wrapping multiple validation errors
-// returned by ConditionV1_Value.ValidateAll() if the designated constraints
-// aren't met.
-type ConditionV1_ValueMultiError []error
+// GetRedirectV1RequestMultiError is an error wrapping multiple validation
+// errors returned by GetRedirectV1Request.ValidateAll() if the designated
+// constraints aren't met.
+type GetRedirectV1RequestMultiError []error
 
 // Error returns a concatenation of all the error messages it wraps.
-func (m ConditionV1_ValueMultiError) Error() string {
+func (m GetRedirectV1RequestMultiError) Error() string {
 	msgs := make([]string, 0, len(m))
 	for _, err := range m {
 		msgs = append(msgs, err.Error())
@@ -2024,11 +1792,11 @@ func (m ConditionV1_ValueMultiError) Error() string {
 }
 
 // AllErrors returns a list of validation violation errors.
-func (m ConditionV1_ValueMultiError) AllErrors() []error { return m }
+func (m GetRedirectV1RequestMultiError) AllErrors() []error { return m }
 
-// ConditionV1_ValueValidationError is the validation error returned by
-// ConditionV1_Value.Validate if the designated constraints aren't met.
-type ConditionV1_ValueValidationError struct {
+// GetRedirectV1RequestValidationError is the validation error returned by
+// GetRedirectV1Request.Validate if the designated constraints aren't met.
+type GetRedirectV1RequestValidationError struct {
 	field  string
 	reason string
 	cause  error
@@ -2036,24 +1804,24 @@ type ConditionV1_ValueValidationError struct {
 }
 
 // Field function returns field value.
-func (e ConditionV1_ValueValidationError) Field() string { return e.field }
+func (e GetRedirectV1RequestValidationError) Field() string { return e.field }
 
 // Reason function returns reason value.
-func (e ConditionV1_ValueValidationError) Reason() string { return e.reason }
+func (e GetRedirectV1RequestValidationError) Reason() string { return e.reason }
 
 // Cause function returns cause value.
-func (e ConditionV1_ValueValidationError) Cause() error { return e.cause }
+func (e GetRedirectV1RequestValidationError) Cause() error { return e.cause }
 
 // Key function returns key value.
-func (e ConditionV1_ValueValidationError) Key() bool { return e.key }
+func (e GetRedirectV1RequestValidationError) Key() bool { return e.key }
 
 // ErrorName returns error name.
-func (e ConditionV1_ValueValidationError) ErrorName() string {
-	return "ConditionV1_ValueValidationError"
+func (e GetRedirectV1RequestValidationError) ErrorName() string {
+	return "GetRedirectV1RequestValidationError"
 }
 
 // Error satisfies the builtin error interface
-func (e ConditionV1_ValueValidationError) Error() string {
+func (e GetRedirectV1RequestValidationError) Error() string {
 	cause := ""
 	if e.cause != nil {
 		cause = fmt.Sprintf(" | caused by: %v", e.cause)
@@ -2065,14 +1833,14 @@ func (e ConditionV1_ValueValidationError) Error() string {
 	}
 
 	return fmt.Sprintf(
-		"invalid %sConditionV1_Value.%s: %s%s",
+		"invalid %sGetRedirectV1Request.%s: %s%s",
 		key,
 		e.field,
 		e.reason,
 		cause)
 }
 
-var _ error = ConditionV1_ValueValidationError{}
+var _ error = GetRedirectV1RequestValidationError{}
 
 var _ interface {
 	Field() string
@@ -2080,4 +1848,108 @@ var _ interface {
 	Key() bool
 	Cause() error
 	ErrorName() string
-} = ConditionV1_ValueValidationError{}
+} = GetRedirectV1RequestValidationError{}
+
+// Validate checks the field values on GetRedirectV1Response with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *GetRedirectV1Response) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on GetRedirectV1Response with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// GetRedirectV1ResponseMultiError, or nil if none found.
+func (m *GetRedirectV1Response) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *GetRedirectV1Response) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	// no validation rules for Url
+
+	if len(errors) > 0 {
+		return GetRedirectV1ResponseMultiError(errors)
+	}
+
+	return nil
+}
+
+// GetRedirectV1ResponseMultiError is an error wrapping multiple validation
+// errors returned by GetRedirectV1Response.ValidateAll() if the designated
+// constraints aren't met.
+type GetRedirectV1ResponseMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m GetRedirectV1ResponseMultiError) Error() string {
+	msgs := make([]string, 0, len(m))
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m GetRedirectV1ResponseMultiError) AllErrors() []error { return m }
+
+// GetRedirectV1ResponseValidationError is the validation error returned by
+// GetRedirectV1Response.Validate if the designated constraints aren't met.
+type GetRedirectV1ResponseValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e GetRedirectV1ResponseValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e GetRedirectV1ResponseValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e GetRedirectV1ResponseValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e GetRedirectV1ResponseValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e GetRedirectV1ResponseValidationError) ErrorName() string {
+	return "GetRedirectV1ResponseValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e GetRedirectV1ResponseValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sGetRedirectV1Response.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = GetRedirectV1ResponseValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = GetRedirectV1ResponseValidationError{}

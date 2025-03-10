@@ -39,6 +39,7 @@ service Rules {
     };
   }
 
+  rpc GetRedirectV1(GetRedirectV1Request) returns (GetRedirectV1Response) {}
 }
 
 message RuleV1 {
@@ -96,4 +97,12 @@ message GetRuleV1Request {
 
 message GetRuleV1Response {
   RuleV1 rule = 1;
+}
+
+message GetRedirectV1Request {
+  string url = 1;
+}
+
+message GetRedirectV1Response {
+  string url = 1;
 }

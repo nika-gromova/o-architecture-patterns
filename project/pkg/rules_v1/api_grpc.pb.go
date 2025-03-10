@@ -19,11 +19,12 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	Rules_ListRulesV1_FullMethodName  = "/rules.Rules/ListRulesV1"
-	Rules_CreateRuleV1_FullMethodName = "/rules.Rules/CreateRuleV1"
-	Rules_UpdateRuleV1_FullMethodName = "/rules.Rules/UpdateRuleV1"
-	Rules_DeleteRuleV1_FullMethodName = "/rules.Rules/DeleteRuleV1"
-	Rules_GetRuleV1_FullMethodName    = "/rules.Rules/GetRuleV1"
+	Rules_ListRulesV1_FullMethodName   = "/rules.Rules/ListRulesV1"
+	Rules_CreateRuleV1_FullMethodName  = "/rules.Rules/CreateRuleV1"
+	Rules_UpdateRuleV1_FullMethodName  = "/rules.Rules/UpdateRuleV1"
+	Rules_DeleteRuleV1_FullMethodName  = "/rules.Rules/DeleteRuleV1"
+	Rules_GetRuleV1_FullMethodName     = "/rules.Rules/GetRuleV1"
+	Rules_GetRedirectV1_FullMethodName = "/rules.Rules/GetRedirectV1"
 )
 
 // RulesClient is the client API for Rules service.
@@ -35,6 +36,7 @@ type RulesClient interface {
 	UpdateRuleV1(ctx context.Context, in *UpdateRuleV1Request, opts ...grpc.CallOption) (*UpdateRuleV1Response, error)
 	DeleteRuleV1(ctx context.Context, in *DeleteRuleV1Request, opts ...grpc.CallOption) (*DeleteRuleV1Response, error)
 	GetRuleV1(ctx context.Context, in *GetRuleV1Request, opts ...grpc.CallOption) (*GetRuleV1Response, error)
+	GetRedirectV1(ctx context.Context, in *GetRedirectV1Request, opts ...grpc.CallOption) (*GetRedirectV1Response, error)
 }
 
 type rulesClient struct {
@@ -95,6 +97,16 @@ func (c *rulesClient) GetRuleV1(ctx context.Context, in *GetRuleV1Request, opts 
 	return out, nil
 }
 
+func (c *rulesClient) GetRedirectV1(ctx context.Context, in *GetRedirectV1Request, opts ...grpc.CallOption) (*GetRedirectV1Response, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetRedirectV1Response)
+	err := c.cc.Invoke(ctx, Rules_GetRedirectV1_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // RulesServer is the server API for Rules service.
 // All implementations must embed UnimplementedRulesServer
 // for forward compatibility.
@@ -104,6 +116,7 @@ type RulesServer interface {
 	UpdateRuleV1(context.Context, *UpdateRuleV1Request) (*UpdateRuleV1Response, error)
 	DeleteRuleV1(context.Context, *DeleteRuleV1Request) (*DeleteRuleV1Response, error)
 	GetRuleV1(context.Context, *GetRuleV1Request) (*GetRuleV1Response, error)
+	GetRedirectV1(context.Context, *GetRedirectV1Request) (*GetRedirectV1Response, error)
 	mustEmbedUnimplementedRulesServer()
 }
 
@@ -128,6 +141,9 @@ func (UnimplementedRulesServer) DeleteRuleV1(context.Context, *DeleteRuleV1Reque
 }
 func (UnimplementedRulesServer) GetRuleV1(context.Context, *GetRuleV1Request) (*GetRuleV1Response, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetRuleV1 not implemented")
+}
+func (UnimplementedRulesServer) GetRedirectV1(context.Context, *GetRedirectV1Request) (*GetRedirectV1Response, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetRedirectV1 not implemented")
 }
 func (UnimplementedRulesServer) mustEmbedUnimplementedRulesServer() {}
 func (UnimplementedRulesServer) testEmbeddedByValue()               {}
@@ -240,6 +256,24 @@ func _Rules_GetRuleV1_Handler(srv interface{}, ctx context.Context, dec func(int
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Rules_GetRedirectV1_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetRedirectV1Request)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(RulesServer).GetRedirectV1(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Rules_GetRedirectV1_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(RulesServer).GetRedirectV1(ctx, req.(*GetRedirectV1Request))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // Rules_ServiceDesc is the grpc.ServiceDesc for Rules service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -266,6 +300,10 @@ var Rules_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetRuleV1",
 			Handler:    _Rules_GetRuleV1_Handler,
+		},
+		{
+			MethodName: "GetRedirectV1",
+			Handler:    _Rules_GetRedirectV1_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

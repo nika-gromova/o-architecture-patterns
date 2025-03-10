@@ -2,6 +2,8 @@ package panic
 
 import (
 	"context"
+	"fmt"
+	"net/http"
 
 	log "github.com/sirupsen/logrus"
 	"google.golang.org/grpc"
@@ -9,7 +11,7 @@ import (
 	"google.golang.org/grpc/status"
 )
 
-func Interceptor(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (resp interface{}, err error) {
+func InterceptorGRPC(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (resp interface{}, err error) {
 	defer func() {
 		if e := recover(); e != nil {
 			log.Errorf("panic: %v\n", e)
@@ -18,4 +20,17 @@ func Interceptor(ctx context.Context, req interface{}, info *grpc.UnaryServerInf
 	}()
 	resp, err = handler(ctx, req)
 	return resp, err
+}
+
+func InterceptorHTTP(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		defer func(w http.ResponseWriter) {
+			if e := recover(); e != nil {
+				log.Errorf("panic: %v\n", e)
+				w.WriteHeader(http.StatusInternalServerError)
+				w.Write([]byte(fmt.Sprintf("panic: %v", e)))
+			}
+		}(w)
+		next.ServeHTTP(w, r)
+	})
 }

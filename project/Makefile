@@ -20,3 +20,6 @@ generate-rules:
 	api/rules/v1/api.proto
 
 generate: get-bin generate-rules
+
+build:
+	go build -o bin/ cmd/main.go

@@ -1,11 +1,11 @@
 package models
 
 type Rule struct {
-	Name         string
-	Owner        Owner
-	BaseLink     Link
-	DefaultLink  *Link
-	Redirections []*Redirection
+	Name              string
+	Owner             Owner
+	BaseLink          Link
+	DefaultRedirectTo *Link
+	Redirections      []*Redirection
 }
 
 type Owner struct {

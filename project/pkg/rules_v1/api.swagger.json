@@ -229,6 +229,14 @@
         }
       }
     },
+    "rulesGetRedirectV1Response": {
+      "type": "object",
+      "properties": {
+        "url": {
+          "type": "string"
+        }
+      }
+    },
     "rulesGetRuleV1Response": {
       "type": "object",
       "properties": {
@@ -266,15 +274,18 @@
         "name": {
           "type": "string"
         },
+        "baseLink": {
+          "type": "string"
+        },
+        "defaultLink": {
+          "type": "string"
+        },
         "redirects": {
           "type": "array",
           "items": {
             "type": "object",
             "$ref": "#/definitions/rulesRedirectV1"
           }
-        },
-        "defaultLink": {
-          "$ref": "#/definitions/rulesTargetLinkV1"
         }
       }
     },

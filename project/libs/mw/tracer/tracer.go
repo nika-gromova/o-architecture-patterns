@@ -9,7 +9,7 @@ import (
 	"google.golang.org/grpc"
 )
 
-func Interceptor(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (resp interface{}, err error) {
+func InterceptorGRPC(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (resp interface{}, err error) {
 	span := opentracing.SpanFromContext(ctx)
 	if span == nil {
 		span, ctx = opentracing.StartSpanFromContext(ctx, info.FullMethod)
