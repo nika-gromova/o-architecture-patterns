@@ -104,14 +104,15 @@ func (s *ServiceManager) initHTTPServer(service Service) {
 		log.Fatalf("failed to register gateway: %s", err)
 	}
 
-	interceptors := []func(http.Handler) http.Handler{
-		logging.InterceptorHTTP,
-		panic.InterceptorHTTP,
-		cors.InterceptorHTTP,
-	}
+	var interceptors []func(http.Handler) http.Handler
 	if s.auth != nil {
 		interceptors = append(interceptors, s.auth.InterceptorHTTP)
 	}
+	interceptors = append(interceptors,
+		logging.InterceptorHTTP,
+		panic.InterceptorHTTP,
+		cors.InterceptorHTTP,
+	)
 
 	var handler http.Handler = mux
 	for _, interceptor := range interceptors {

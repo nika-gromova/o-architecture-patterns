@@ -4,7 +4,28 @@ package rules;
 option go_package = "github.com/nika-gromova/o-architecture-patterns/project/pkg/rules_v1";
 
 import "google/api/annotations.proto";
-import "google/protobuf/timestamp.proto";
+import "protoc-gen-openapiv2/options/annotations.proto";
+
+option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_swagger) = {
+  security_definitions: {
+    security: {
+      key: "BearerAuth"
+      value: {
+        type: TYPE_OAUTH2
+        in: IN_HEADER
+        flow: FLOW_PASSWORD
+        authorization_url: "http://localhost:7080/realms/rules/protocol/openid-connect/auth"
+        token_url:"http://localhost:7080/realms/rules/protocol/openid-connect/token"
+      }
+    }
+  }
+  security: {
+    security_requirement: {
+      key: "BearerAuth"
+      value: {}
+    }
+  }
+};
 
 service Rules {
   rpc ListRulesV1(ListRulesV1Request) returns (ListRulesV1Response) {

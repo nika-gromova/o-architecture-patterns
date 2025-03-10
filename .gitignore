@@ -28,3 +28,5 @@ go.work.sum
 
 project/bin
 project/vendor-proto
+project/config.yaml
+project/swagger.json

@@ -2,29 +2,35 @@ package auth
 
 import (
 	"context"
-	"fmt"
 	"net/http"
+	"strings"
 
 	"github.com/golang-jwt/jwt/v5"
+	"github.com/nika-gromova/o-architecture-patterns/project/libs/auth"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/status"
 )
 
+type Authenticator interface {
+	Authenticate(token string) (*jwt.Token, error)
+}
+
 type Interceptor struct {
-	secretKey string
-	userKey   string
+	Authenticator Authenticator
 }
 
 func (i *Interceptor) InterceptorHTTP(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		token := r.Header.Get("Authorization")
-		ctx := r.Context()
-		if ctx == nil {
-			ctx = context.Background()
+		header := r.Header.Get("Authorization")
+
+		token := strings.Split(header, "Bearer")
+		if len(token) != 2 {
+			http.Error(w, "invalid authorization header", http.StatusUnauthorized)
+			return
 		}
-		ctx, err := i.auth(ctx, token)
+		ctx, err := i.auth(r.Context(), strings.TrimSpace(token[1]))
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusUnauthorized)
 			return
@@ -44,6 +50,7 @@ func (i *Interceptor) InterceptorGRPC(ctx context.Context, req interface{}, info
 		return nil, status.Error(codes.Unauthenticated, "no authorization found")
 	}
 	token := values[0]
+
 	ctx, err = i.auth(ctx, token)
 	if err != nil {
 		return nil, status.Error(codes.Unauthenticated, err.Error())
@@ -53,31 +60,13 @@ func (i *Interceptor) InterceptorGRPC(ctx context.Context, req interface{}, info
 }
 
 func (i *Interceptor) auth(ctx context.Context, token string) (context.Context, error) {
-	claims := jwt.MapClaims{}
-
-	key, err := jwt.ParseRSAPublicKeyFromPEM([]byte(i.secretKey))
+	claims, err := i.Authenticator.Authenticate(token)
 	if err != nil {
 		return nil, err
 	}
-
-	t, err := jwt.ParseWithClaims(token, claims, func(token *jwt.Token) (interface{}, error) {
-		if _, ok := token.Method.(*jwt.SigningMethodRSA); !ok {
-			return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
-		}
-
-		// return the public key that is used to validate the token.
-		return key, nil
-	})
-	if err != nil {
-		return nil, err
-	}
-	if !t.Valid {
-		return nil, fmt.Errorf("invalid token")
-	}
-	user, found := claims[i.userKey]
-	if !found {
-		return nil, fmt.Errorf("user not found in token")
+	if ctx == nil {
+		ctx = context.Background()
 	}
 
-	return context.WithValue(ctx, i.userKey, user), nil
+	return auth.ToContext(ctx, claims), nil
 }

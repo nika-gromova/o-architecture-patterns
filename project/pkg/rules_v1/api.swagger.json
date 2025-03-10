@@ -305,5 +305,19 @@
         }
       }
     }
-  }
+  },
+  "securityDefinitions": {
+    "BearerAuth": {
+      "type": "oauth2",
+      "in": "header",
+      "flow": "password",
+      "authorizationUrl": "http://localhost:7080/realms/rules/protocol/openid-connect/auth",
+      "tokenUrl": "http://localhost:7080/realms/rules/protocol/openid-connect/token"
+    }
+  },
+  "security": [
+    {
+      "BearerAuth": []
+    }
+  ]
 }

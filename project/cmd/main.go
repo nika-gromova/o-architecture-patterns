@@ -6,6 +6,8 @@ import (
 	"syscall"
 
 	"github.com/nika-gromova/o-architecture-patterns/project/internal/api"
+	"github.com/nika-gromova/o-architecture-patterns/project/internal/config"
+	auth_lib "github.com/nika-gromova/o-architecture-patterns/project/libs/auth"
 	"github.com/nika-gromova/o-architecture-patterns/project/libs/mw/auth"
 	grpcservice "github.com/nika-gromova/o-architecture-patterns/project/libs/service"
 	log "github.com/sirupsen/logrus"
@@ -25,7 +27,11 @@ func main() {
 	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
 	defer stop()
 
-	authService := &auth.Interceptor{}
+	cfg := config.New()
+
+	authService := &auth.Interceptor{
+		Authenticator: auth_lib.NewAuthenticator(cfg.GetSecret(config.JWTPublicKey)),
+	}
 	manager, err := grpcservice.New(service,
 		grpcservice.WithAuthInterceptor(authService),
 		grpcservice.WithServiceName(appName),
