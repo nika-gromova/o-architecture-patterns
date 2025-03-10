@@ -55,4 +55,4 @@ generate-rules:
 generate: generate-rules
 
 build:
-	go build -o bin/ cmd/main.go
+	go build -o bin/app github.com/nika-gromova/o-architecture-patterns/project/cmd

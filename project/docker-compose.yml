@@ -1,13 +1,15 @@
 version: "3.1"
 
 services:
-#  rules_app:
-#    image: rules
-#    environment:
-#      APP_NAME: rules
-#    ports:
-#      - "8080:8080"
-#      - "50051:50051"
+  rules_app:
+    image: rules
+    build: ./
+    environment:
+      APP_NAME: rules
+    ports:
+      - "8080:8080"
+      - "8081:8081"
+      - "50051:50051"
   my-keycloak:
     image: quay.io/keycloak/keycloak:24.0
     environment:

@@ -133,7 +133,7 @@ func (s *ServiceManager) initAdminServer() {
 		var swagger map[string]interface{}
 		file, err := os.ReadFile("swagger.json")
 		if err != nil {
-			http.Error(w, "Не удалось загрузить swagger.json", http.StatusInternalServerError)
+			http.Error(w, fmt.Sprintf("Не удалось загрузить swagger.json: %s", err), http.StatusInternalServerError)
 			return
 		}
 
