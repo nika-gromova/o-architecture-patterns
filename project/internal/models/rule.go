@@ -2,14 +2,14 @@ package models
 
 type Rule struct {
 	Name              string
-	Owner             Owner
-	BaseLink          Link
+	Owner             *Owner
+	BaseLink          *Link
 	DefaultRedirectTo *Link
 	Redirections      []*Redirection
 }
 
 type Owner struct {
-	Username string
+	UUID string
 }
 
 type Link struct {

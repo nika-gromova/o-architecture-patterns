@@ -13,21 +13,24 @@ import (
 	"github.com/nika-gromova/o-architecture-patterns/project/libs/mw/cors"
 	"github.com/nika-gromova/o-architecture-patterns/project/libs/mw/logging"
 	"github.com/nika-gromova/o-architecture-patterns/project/libs/mw/panic"
-	"github.com/nika-gromova/o-architecture-patterns/project/libs/mw/tracer"
-	tracerlib "github.com/nika-gromova/o-architecture-patterns/project/libs/tracer"
 	log "github.com/sirupsen/logrus"
 	"github.com/swaggest/swgui/v5emb"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
 )
 
+type HTTPInterceptor func(next http.Handler) http.Handler
+
 type ServiceManager struct {
-	grpcServer                    *grpc.Server
-	httpServer                    *http.Server
-	adminServer                   *http.Server
+	grpcServer  *grpc.Server
+	httpServer  *http.Server
+	adminServer *http.Server
+
 	serviceName                   string
-	auth                          AuthInterceptor
 	httpPort, grpcPort, adminPort int
+	grpcInterceptors              []grpc.UnaryServerInterceptor
+	httpInterceptors              []HTTPInterceptor
+	customErrorHandler            runtime.ErrorHandlerFunc
 }
 
 type Service interface {
@@ -35,22 +38,11 @@ type Service interface {
 	RegisterHTTP(ctx context.Context, mux *runtime.ServeMux) error
 }
 
-type AuthInterceptor interface {
-	InterceptorHTTP(next http.Handler) http.Handler
-	InterceptorGRPC(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (resp interface{}, err error)
-}
-
 type opts func(s *ServiceManager)
 
 func WithServiceName(serviceName string) opts {
 	return func(s *ServiceManager) {
 		s.serviceName = serviceName
-	}
-}
-
-func WithAuthInterceptor(auth AuthInterceptor) opts {
-	return func(s *ServiceManager) {
-		s.auth = auth
 	}
 }
 
@@ -62,15 +54,33 @@ func WithPorts(httpPort, grpcPort, adminPort int) opts {
 	}
 }
 
+func WithGRPCInterceptors(interceptors ...grpc.UnaryServerInterceptor) opts {
+	return func(s *ServiceManager) {
+		for _, interceptor := range interceptors {
+			s.grpcInterceptors = append(s.grpcInterceptors, interceptor)
+		}
+	}
+}
+
+func WithHTTPInterceptors(interceptors ...func(next http.Handler) http.Handler) opts {
+	return func(s *ServiceManager) {
+		for _, interceptor := range interceptors {
+			s.httpInterceptors = append(s.httpInterceptors, interceptor)
+		}
+	}
+}
+
+func WithCustomErrorHandler(customErrorHandler runtime.ErrorHandlerFunc) opts {
+	return func(s *ServiceManager) {
+		s.customErrorHandler = customErrorHandler
+	}
+}
+
 func New(service Service, opts ...opts) (*ServiceManager, error) {
 	s := &ServiceManager{}
 
 	for _, opt := range opts {
 		opt(s)
-	}
-
-	if err := tracerlib.InitGlobal(s.serviceName); err != nil {
-		return nil, err
 	}
 
 	s.initGRPCServer(service)
@@ -83,11 +93,10 @@ func New(service Service, opts ...opts) (*ServiceManager, error) {
 func (s *ServiceManager) initGRPCServer(service Service) {
 	serverOptions := []grpc.ServerOption{
 		grpc.ChainUnaryInterceptor(panic.InterceptorGRPC),
-		grpc.ChainUnaryInterceptor(tracer.InterceptorGRPC),
 		grpc.ChainUnaryInterceptor(logging.InterceptorGRPC),
 	}
-	if s.auth != nil {
-		serverOptions = append(serverOptions, grpc.UnaryInterceptor(s.auth.InterceptorGRPC))
+	for _, interceptor := range s.grpcInterceptors {
+		serverOptions = append(serverOptions, grpc.ChainUnaryInterceptor(interceptor))
 	}
 
 	server := grpc.NewServer(serverOptions...)
@@ -98,15 +107,19 @@ func (s *ServiceManager) initGRPCServer(service Service) {
 }
 
 func (s *ServiceManager) initHTTPServer(service Service) {
-	mux := runtime.NewServeMux()
+	var options []runtime.ServeMuxOption
+	if s.customErrorHandler != nil {
+		options = append(options, runtime.WithErrorHandler(s.customErrorHandler))
+	}
+	mux := runtime.NewServeMux(options...)
 	err := service.RegisterHTTP(context.Background(), mux)
 	if err != nil {
 		log.Fatalf("failed to register gateway: %s", err)
 	}
 
-	var interceptors []func(http.Handler) http.Handler
-	if s.auth != nil {
-		interceptors = append(interceptors, s.auth.InterceptorHTTP)
+	interceptors := make([]HTTPInterceptor, 0, len(s.httpInterceptors))
+	for _, interceptor := range s.httpInterceptors {
+		interceptors = append(interceptors, interceptor)
 	}
 	interceptors = append(interceptors,
 		logging.InterceptorHTTP,

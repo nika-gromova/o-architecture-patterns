@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/golang-jwt/jwt/v5"
+	log "github.com/sirupsen/logrus"
 )
 
 const claims = "auth-claims"
@@ -48,5 +49,10 @@ func ToContext(ctx context.Context, token *jwt.Token) context.Context {
 }
 
 func FromContext(ctx context.Context) jwt.Claims {
-	return ctx.Value(claims).(jwt.Claims)
+	var result jwt.Claims
+	result, ok := ctx.Value(claims).(jwt.Claims)
+	if !ok {
+		log.Errorf("failed to get claims from context")
+	}
+	return result
 }
