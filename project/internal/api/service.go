@@ -17,6 +17,14 @@ type RulesService interface {
 	GetRule(ctx context.Context, owner *models.Owner, name string) (*models.Rule, error)
 }
 
+type Storage interface {
+	CreateRule(context.Context, *models.Rule) error
+	DeleteRule(context.Context, *models.Rule) error
+	UpdateRule(context.Context, *models.Rule) error
+	ListRules(context.Context, *models.Owner) ([]*models.Rule, error)
+	GetRule(context.Context, *models.Owner, string) (*models.Rule, error)
+}
+
 type Service struct {
 	rules_v1.UnimplementedRulesServer
 

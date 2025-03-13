@@ -65,22 +65,22 @@ service Rules {
 
 message RuleV1 {
   string name = 1;
-  string base_link = 2;
-  optional string default_link = 3;
+  LinkV1 base_link = 2;
+  optional LinkV1 default_link = 3;
   repeated RedirectV1 redirects = 4;
 }
 
 message RedirectV1 {
   FormulaV1 formula = 1;
-  TargetLinkV1 target_link = 2;
+  LinkV1 target_link = 2;
 }
 
 message FormulaV1 {
   string expression = 1;
 }
 
-message TargetLinkV1 {
-  string link = 1;
+message LinkV1 {
+  string url = 1;
 }
 
 message ListRulesV1Request {
@@ -99,7 +99,7 @@ message CreateRuleV1Response {}
 message UpdateRuleV1Request {
   string name = 1;
   repeated RedirectV1 redirects = 2;
-  optional TargetLinkV1 default_link = 3;
+  optional LinkV1 default_link = 3;
 }
 
 message UpdateRuleV1Response {
@@ -124,6 +124,12 @@ message GetRedirectV1Request {
   string url = 1;
 }
 
+message RedirectRequestV1 {
+  string method = 1;
+  map<string, string> headers = 2;
+  bytes body = 3;
+}
+
 message GetRedirectV1Response {
-  string url = 1;
+  LinkV1 link = 1;
 }

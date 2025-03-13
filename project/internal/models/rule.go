@@ -17,8 +17,8 @@ type Link struct {
 }
 
 type Redirection struct {
-	Formula Formula
-	Target  Link
+	Formula *Formula
+	Target  *Link
 }
 
 type Formula struct {

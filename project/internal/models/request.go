@@ -5,3 +5,14 @@ type Request struct {
 	Header map[string]string `json:"header"`
 	Body   []byte            `json:"body"`
 }
+
+const (
+	LocaleVariable = "locale"
+	TimeVariable   = "time"
+)
+
+type HeaderVariable struct {
+	Name   string
+	Header string
+	Type   string
+}

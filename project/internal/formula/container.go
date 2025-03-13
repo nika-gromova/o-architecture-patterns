@@ -12,7 +12,7 @@ import (
 )
 
 type IoCFormulaOperatorsRegistrar struct {
-	next models.Registrar
+	Next models.Registrar
 }
 
 func (r *IoCFormulaOperatorsRegistrar) Register(oldCtx context.Context) (context.Context, error) {
@@ -88,8 +88,8 @@ func (r *IoCFormulaOperatorsRegistrar) Register(oldCtx context.Context) (context
 		return ctx, err
 	}
 
-	if r.next != nil {
-		return r.next.Register(ctx)
+	if r.Next != nil {
+		return r.Next.Register(ctx)
 	}
 	return ctx, nil
 }
@@ -129,14 +129,14 @@ func forAbstractOperator(args ...any) (interpreter.AbstractExpression[any], inte
 }
 
 type IoCFormulaStringVariableRegistrar struct {
-	variableName string
-	next         models.Registrar
+	VariableName string
+	Next         models.Registrar
 }
 
 func (r *IoCFormulaStringVariableRegistrar) Register(oldCtx context.Context) (context.Context, error) {
 	ctx := ioc.NewScope(oldCtx)
 
-	err := ioc.Register(ctx, models.IoCFormulaInterpreterVariablesDomain+r.variableName, func(args ...any) (any, error) {
+	err := ioc.Register(ctx, models.IoCFormulaInterpreterVariablesDomain+r.VariableName, func(args ...any) (any, error) {
 		if len(args) != 1 {
 			return nil, fmt.Errorf("expected 1 argument, got %d", len(args))
 		}
@@ -145,7 +145,7 @@ func (r *IoCFormulaStringVariableRegistrar) Register(oldCtx context.Context) (co
 			return nil, fmt.Errorf("failed to convert value to string")
 		}
 
-		if strings.EqualFold(value, r.variableName) {
+		if strings.EqualFold(value, r.VariableName) {
 			return &interpreter.Variable[any]{
 				Name: value,
 			}, nil
@@ -163,21 +163,21 @@ func (r *IoCFormulaStringVariableRegistrar) Register(oldCtx context.Context) (co
 		return nil, err
 	}
 
-	if r.next != nil {
-		return r.next.Register(ctx)
+	if r.Next != nil {
+		return r.Next.Register(ctx)
 	}
 	return ctx, nil
 }
 
 type IoCFormulaDateTimeVariableRegistrar struct {
-	variableName string
-	next         models.Registrar
+	VariableName string
+	Next         models.Registrar
 }
 
 func (r *IoCFormulaDateTimeVariableRegistrar) Register(oldCtx context.Context) (context.Context, error) {
 	ctx := ioc.NewScope(oldCtx)
 
-	err := ioc.Register(ctx, models.IoCFormulaInterpreterVariablesDomain+r.variableName, func(args ...any) (any, error) {
+	err := ioc.Register(ctx, models.IoCFormulaInterpreterVariablesDomain+r.VariableName, func(args ...any) (any, error) {
 		if len(args) != 1 {
 			return nil, fmt.Errorf("expected 1 argument, got %d", len(args))
 		}
@@ -186,7 +186,7 @@ func (r *IoCFormulaDateTimeVariableRegistrar) Register(oldCtx context.Context) (
 			return nil, fmt.Errorf("failed to convert value to string")
 		}
 
-		if strings.EqualFold(value, r.variableName) {
+		if strings.EqualFold(value, r.VariableName) {
 			return &interpreter.Variable[any]{
 				Name: value,
 			}, nil
@@ -204,8 +204,8 @@ func (r *IoCFormulaDateTimeVariableRegistrar) Register(oldCtx context.Context) (
 		return nil, err
 	}
 
-	if r.next != nil {
-		return r.next.Register(ctx)
+	if r.Next != nil {
+		return r.Next.Register(ctx)
 	}
 	return ctx, nil
 }

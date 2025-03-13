@@ -58,7 +58,34 @@ func (m *RuleV1) validate(all bool) error {
 
 	// no validation rules for Name
 
-	// no validation rules for BaseLink
+	if all {
+		switch v := interface{}(m.GetBaseLink()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, RuleV1ValidationError{
+					field:  "BaseLink",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, RuleV1ValidationError{
+					field:  "BaseLink",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetBaseLink()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return RuleV1ValidationError{
+				field:  "BaseLink",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
 
 	for idx, item := range m.GetRedirects() {
 		_, _ = idx, item
@@ -95,7 +122,36 @@ func (m *RuleV1) validate(all bool) error {
 	}
 
 	if m.DefaultLink != nil {
-		// no validation rules for DefaultLink
+
+		if all {
+			switch v := interface{}(m.GetDefaultLink()).(type) {
+			case interface{ ValidateAll() error }:
+				if err := v.ValidateAll(); err != nil {
+					errors = append(errors, RuleV1ValidationError{
+						field:  "DefaultLink",
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			case interface{ Validate() error }:
+				if err := v.Validate(); err != nil {
+					errors = append(errors, RuleV1ValidationError{
+						field:  "DefaultLink",
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			}
+		} else if v, ok := interface{}(m.GetDefaultLink()).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return RuleV1ValidationError{
+					field:  "DefaultLink",
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+
 	}
 
 	if len(errors) > 0 {
@@ -433,43 +489,42 @@ var _ interface {
 	ErrorName() string
 } = FormulaV1ValidationError{}
 
-// Validate checks the field values on TargetLinkV1 with the rules defined in
-// the proto definition for this message. If any rules are violated, the first
+// Validate checks the field values on LinkV1 with the rules defined in the
+// proto definition for this message. If any rules are violated, the first
 // error encountered is returned, or nil if there are no violations.
-func (m *TargetLinkV1) Validate() error {
+func (m *LinkV1) Validate() error {
 	return m.validate(false)
 }
 
-// ValidateAll checks the field values on TargetLinkV1 with the rules defined
-// in the proto definition for this message. If any rules are violated, the
-// result is a list of violation errors wrapped in TargetLinkV1MultiError, or
-// nil if none found.
-func (m *TargetLinkV1) ValidateAll() error {
+// ValidateAll checks the field values on LinkV1 with the rules defined in the
+// proto definition for this message. If any rules are violated, the result is
+// a list of violation errors wrapped in LinkV1MultiError, or nil if none found.
+func (m *LinkV1) ValidateAll() error {
 	return m.validate(true)
 }
 
-func (m *TargetLinkV1) validate(all bool) error {
+func (m *LinkV1) validate(all bool) error {
 	if m == nil {
 		return nil
 	}
 
 	var errors []error
 
-	// no validation rules for Link
+	// no validation rules for Url
 
 	if len(errors) > 0 {
-		return TargetLinkV1MultiError(errors)
+		return LinkV1MultiError(errors)
 	}
 
 	return nil
 }
 
-// TargetLinkV1MultiError is an error wrapping multiple validation errors
-// returned by TargetLinkV1.ValidateAll() if the designated constraints aren't met.
-type TargetLinkV1MultiError []error
+// LinkV1MultiError is an error wrapping multiple validation errors returned by
+// LinkV1.ValidateAll() if the designated constraints aren't met.
+type LinkV1MultiError []error
 
 // Error returns a concatenation of all the error messages it wraps.
-func (m TargetLinkV1MultiError) Error() string {
+func (m LinkV1MultiError) Error() string {
 	msgs := make([]string, 0, len(m))
 	for _, err := range m {
 		msgs = append(msgs, err.Error())
@@ -478,11 +533,11 @@ func (m TargetLinkV1MultiError) Error() string {
 }
 
 // AllErrors returns a list of validation violation errors.
-func (m TargetLinkV1MultiError) AllErrors() []error { return m }
+func (m LinkV1MultiError) AllErrors() []error { return m }
 
-// TargetLinkV1ValidationError is the validation error returned by
-// TargetLinkV1.Validate if the designated constraints aren't met.
-type TargetLinkV1ValidationError struct {
+// LinkV1ValidationError is the validation error returned by LinkV1.Validate if
+// the designated constraints aren't met.
+type LinkV1ValidationError struct {
 	field  string
 	reason string
 	cause  error
@@ -490,22 +545,22 @@ type TargetLinkV1ValidationError struct {
 }
 
 // Field function returns field value.
-func (e TargetLinkV1ValidationError) Field() string { return e.field }
+func (e LinkV1ValidationError) Field() string { return e.field }
 
 // Reason function returns reason value.
-func (e TargetLinkV1ValidationError) Reason() string { return e.reason }
+func (e LinkV1ValidationError) Reason() string { return e.reason }
 
 // Cause function returns cause value.
-func (e TargetLinkV1ValidationError) Cause() error { return e.cause }
+func (e LinkV1ValidationError) Cause() error { return e.cause }
 
 // Key function returns key value.
-func (e TargetLinkV1ValidationError) Key() bool { return e.key }
+func (e LinkV1ValidationError) Key() bool { return e.key }
 
 // ErrorName returns error name.
-func (e TargetLinkV1ValidationError) ErrorName() string { return "TargetLinkV1ValidationError" }
+func (e LinkV1ValidationError) ErrorName() string { return "LinkV1ValidationError" }
 
 // Error satisfies the builtin error interface
-func (e TargetLinkV1ValidationError) Error() string {
+func (e LinkV1ValidationError) Error() string {
 	cause := ""
 	if e.cause != nil {
 		cause = fmt.Sprintf(" | caused by: %v", e.cause)
@@ -517,14 +572,14 @@ func (e TargetLinkV1ValidationError) Error() string {
 	}
 
 	return fmt.Sprintf(
-		"invalid %sTargetLinkV1.%s: %s%s",
+		"invalid %sLinkV1.%s: %s%s",
 		key,
 		e.field,
 		e.reason,
 		cause)
 }
 
-var _ error = TargetLinkV1ValidationError{}
+var _ error = LinkV1ValidationError{}
 
 var _ interface {
 	Field() string
@@ -532,7 +587,7 @@ var _ interface {
 	Key() bool
 	Cause() error
 	ErrorName() string
-} = TargetLinkV1ValidationError{}
+} = LinkV1ValidationError{}
 
 // Validate checks the field values on ListRulesV1Request with the rules
 // defined in the proto definition for this message. If any rules are
@@ -1872,7 +1927,34 @@ func (m *GetRedirectV1Response) validate(all bool) error {
 
 	var errors []error
 
-	// no validation rules for Url
+	if all {
+		switch v := interface{}(m.GetLink()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, GetRedirectV1ResponseValidationError{
+					field:  "Link",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, GetRedirectV1ResponseValidationError{
+					field:  "Link",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetLink()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return GetRedirectV1ResponseValidationError{
+				field:  "Link",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
 
 	if len(errors) > 0 {
 		return GetRedirectV1ResponseMultiError(errors)

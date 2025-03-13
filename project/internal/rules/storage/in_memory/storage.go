@@ -80,3 +80,7 @@ func (s *Storage) getRules(owner *models.Owner) (map[string]*models.Rule, error)
 	}
 	return rules, nil
 }
+
+func (s *Storage) GetRuleByBaseLink(context.Context, *models.Link) (*models.Rule, error) {
+	return nil, nil
+}

@@ -3,9 +3,10 @@ package rules
 import (
 	"context"
 	"fmt"
-	"strings"
 
+	"github.com/nika-gromova/o-architecture-patterns/project/internal/formula/data"
 	"github.com/nika-gromova/o-architecture-patterns/project/internal/models"
+	log "github.com/sirupsen/logrus"
 )
 
 var (
@@ -14,53 +15,95 @@ var (
 )
 
 type Storage interface {
-	CreateRule(context.Context, *models.Rule) error
-	DeleteRule(context.Context, *models.Rule) error
-	UpdateRule(context.Context, *models.Rule) error
-	ListRules(context.Context, *models.Owner) ([]*models.Rule, error)
-	GetRule(context.Context, *models.Owner, string) (*models.Rule, error)
+	GetRuleByBaseLink(context.Context, *models.Link) (*models.Rule, error)
+}
+
+type FormulaProcessor interface {
+	Evaluate(ctx context.Context, input string, data models.Data[any]) (bool, error)
+}
+
+type RedirectStrategy interface {
+	Redirect(ctx context.Context, rule *models.Rule, data models.Data[any]) *models.Link
 }
 
 type Service struct {
-	storage Storage
+	baseCtx context.Context
+
+	storage          Storage
+	processor        FormulaProcessor
+	redirectStrategy RedirectStrategy
 }
 
 type opts func(s *Service)
 
-func NewService(storage Storage, opts ...opts) *Service {
+func NewService(registrar models.Registrar, storage Storage, opts ...opts) (*Service, error) {
 	s := &Service{
 		storage: storage,
+		baseCtx: context.Background(),
 	}
+	s.redirectStrategy = s
 
 	for _, opt := range opts {
 		opt(s)
 	}
-	return s
-}
 
-func (s *Service) CreateRule(ctx context.Context, rule *models.Rule) error {
-	return s.storage.CreateRule(ctx, rule)
-}
-
-func (s *Service) DeleteRule(ctx context.Context, rule *models.Rule) error {
-	return s.storage.DeleteRule(ctx, rule)
-}
-
-func (s *Service) UpdateRule(ctx context.Context, rule *models.Rule) error {
-	return s.storage.UpdateRule(ctx, rule)
-}
-
-func (s *Service) ListRules(ctx context.Context, owner *models.Owner) ([]*models.Rule, error) {
-	rules, err := s.storage.ListRules(ctx, owner)
+	ctx, err := registrar.Register(s.baseCtx)
 	if err != nil {
-		if strings.Contains(err.Error(), ErrNotFound.Error()) {
-			return nil, fmt.Errorf("%w: %s", ErrNotFound, err.Error())
-		}
 		return nil, err
 	}
-	return rules, nil
+
+	s.baseCtx = ctx
+	return s, nil
 }
 
-func (s *Service) GetRule(ctx context.Context, owner *models.Owner, name string) (*models.Rule, error) {
-	return s.storage.GetRule(ctx, owner, name)
+func WithRedirectStrategy(strategy RedirectStrategy) opts {
+	return func(s *Service) {
+		s.redirectStrategy = strategy
+	}
+}
+
+func WithBaseCtx(ctx context.Context) opts {
+	return func(s *Service) {
+		s.baseCtx = ctx
+	}
+}
+
+func (s *Service) FindRedirect(ctx context.Context, base *models.Link, request *models.Request) (*models.Link, error) {
+	rule, err := s.storage.GetRuleByBaseLink(ctx, base)
+	if err != nil {
+		return nil, err
+	}
+
+	if rule == nil {
+		return nil, fmt.Errorf("rule: %w", ErrNotFound)
+	}
+
+	requestData, err := data.NewFromRequest(ctx, request)
+	if err != nil {
+		return nil, fmt.Errorf("convert request: %w, %w", ErrInvalidArgument, err)
+	}
+
+	target := s.redirectStrategy.Redirect(ctx, rule, requestData)
+	if target == nil {
+		return nil, fmt.Errorf("redirect for %s, %w", base.URL, ErrNotFound)
+	}
+
+	return target, nil
+}
+
+func (s *Service) Redirect(ctx context.Context, rule *models.Rule, data models.Data[any]) *models.Link {
+	target := rule.DefaultRedirectTo
+	for _, redirect := range rule.Redirections {
+		isTrue, err := s.processor.Evaluate(ctx, redirect.Target.URL, data)
+		if err != nil {
+			log.Errorf("evaluate redirect url: %s, %s", redirect.Target.URL, err.Error())
+			continue
+		}
+		if isTrue {
+			target = redirect.Target
+			break
+		}
+	}
+
+	return target
 }

@@ -175,7 +175,7 @@
           }
         },
         "defaultLink": {
-          "$ref": "#/definitions/rulesTargetLinkV1"
+          "$ref": "#/definitions/rulesLinkV1"
         }
       }
     },
@@ -232,8 +232,8 @@
     "rulesGetRedirectV1Response": {
       "type": "object",
       "properties": {
-        "url": {
-          "type": "string"
+        "link": {
+          "$ref": "#/definitions/rulesLinkV1"
         }
       }
     },
@@ -242,6 +242,14 @@
       "properties": {
         "rule": {
           "$ref": "#/definitions/rulesRuleV1"
+        }
+      }
+    },
+    "rulesLinkV1": {
+      "type": "object",
+      "properties": {
+        "url": {
+          "type": "string"
         }
       }
     },
@@ -264,7 +272,7 @@
           "$ref": "#/definitions/rulesFormulaV1"
         },
         "targetLink": {
-          "$ref": "#/definitions/rulesTargetLinkV1"
+          "$ref": "#/definitions/rulesLinkV1"
         }
       }
     },
@@ -275,10 +283,10 @@
           "type": "string"
         },
         "baseLink": {
-          "type": "string"
+          "$ref": "#/definitions/rulesLinkV1"
         },
         "defaultLink": {
-          "type": "string"
+          "$ref": "#/definitions/rulesLinkV1"
         },
         "redirects": {
           "type": "array",
@@ -286,14 +294,6 @@
             "type": "object",
             "$ref": "#/definitions/rulesRedirectV1"
           }
-        }
-      }
-    },
-    "rulesTargetLinkV1": {
-      "type": "object",
-      "properties": {
-        "link": {
-          "type": "string"
         }
       }
     },

@@ -1,4 +1,4 @@
-package data
+package request
 
 import (
 	"context"
@@ -23,13 +23,13 @@ func (ic *RequestData) GetValue(key string) (any, error) {
 	return value, nil
 }
 
-func NewFromRequest(ctx context.Context, request models.Request) (*RequestData, error) {
+func NewFromRequest(ctx context.Context, request *models.Request) (*RequestData, error) {
 	data := &RequestData{
 		values: make(map[string]any),
 	}
 
 	for key, value := range request.Header {
-		converter, err := ioc.Resolve(ctx, "Formula.Data.Converter"+key)
+		converter, err := ioc.Resolve(ctx, models.IoCFormulaDataConverterHeadersDomain+key)
 		if err != nil {
 			logger.Infof("converter for header %s not found: %s", key, err)
 			continue
@@ -55,4 +55,11 @@ func ConvertLocaleHeader(value string) (any, error) {
 
 func ConvertDateHeader(value string) (any, error) {
 	return types.NewDateTimeTypeFromString(value)
+}
+
+func GetInitConverters() map[string]func(string) (any, error) {
+	return map[string]func(string) (any, error){
+		models.LocaleVariable: ConvertLocaleHeader,
+		models.TimeVariable:   ConvertDateHeader,
+	}
 }

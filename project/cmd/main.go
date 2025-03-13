@@ -8,9 +8,10 @@ import (
 
 	"github.com/nika-gromova/o-architecture-patterns/project/internal/api"
 	"github.com/nika-gromova/o-architecture-patterns/project/internal/config"
+	"github.com/nika-gromova/o-architecture-patterns/project/internal/formula"
+	"github.com/nika-gromova/o-architecture-patterns/project/internal/formula/data/request"
+	"github.com/nika-gromova/o-architecture-patterns/project/internal/models"
 	"github.com/nika-gromova/o-architecture-patterns/project/internal/mw/errors"
-	"github.com/nika-gromova/o-architecture-patterns/project/internal/rules"
-	"github.com/nika-gromova/o-architecture-patterns/project/internal/rules/storage/in_memory"
 	auth_lib "github.com/nika-gromova/o-architecture-patterns/project/libs/auth"
 	"github.com/nika-gromova/o-architecture-patterns/project/libs/mw/auth"
 	grpcservice "github.com/nika-gromova/o-architecture-patterns/project/libs/service"
@@ -29,7 +30,40 @@ func main() {
 
 	cfg := config.New()
 
-	rulesService := rules.NewService(in_memory.NewStorage())
+	converters := request.GetInitConverters()
+
+	var registrars []models.Registrar
+	variablesToHeaders := cfg.GetHeaderVariables()
+	for _, variable := range variablesToHeaders {
+		converter, found := converters[variable.Name]
+		if found {
+			registrars = append(registrars, &request.IoCRequestHeaderDataConverterRegistrar{
+				Header:    variable.Header,
+				Converter: converter,
+			})
+		}
+		if variable.Type == "string" {
+			registrars = append(registrars, &formula.IoCFormulaStringVariableRegistrar{
+				VariableName: variable.Name,
+			})
+		}
+		if variable.Type == "time" {
+			registrars = append(registrars, &formula.IoCFormulaDateTimeVariableRegistrar{
+				VariableName: variable.Name,
+			})
+		}
+	}
+
+	//registrar := &formula.IoCFormulaOperatorsRegistrar{
+	//	Next: &formula.IoCFormulaStringVariableRegistrar{
+	//		VariableName: "Locale",
+	//		Next:  &formula.IoCFormulaDateTimeVariableRegistrar{
+	//			VariableName: "Time",
+	//			Next:
+	//		},
+	//	},
+	//}
+	//rulesService, err := rules.NewService(in_memory.NewStorage())
 
 	service := api.NewService(rulesService)
 	authService := &auth.Interceptor{

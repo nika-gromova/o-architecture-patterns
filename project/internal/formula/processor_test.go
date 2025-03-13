@@ -138,8 +138,8 @@ func TestFormula_buildExpression(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			registrar := &IoCFormulaOperatorsRegistrar{
-				next: &IoCFormulaStringVariableRegistrar{
-					variableName: "Locale",
+				Next: &IoCFormulaStringVariableRegistrar{
+					VariableName: "Locale",
 				},
 			}
 
