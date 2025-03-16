@@ -8,7 +8,7 @@ const (
 // values
 
 const (
-	VariablesToHeaders = "variablesToHeaders"
-	VariableHeader     = "header"
-	VariableType       = "type"
+	Variables          = "variables"
+	VariablesToHeaders = "variables_to_headers"
+	VariablesTypes     = "variables_types"
 )

@@ -1823,7 +1823,63 @@ func (m *GetRedirectV1Request) validate(all bool) error {
 
 	var errors []error
 
-	// no validation rules for Url
+	if all {
+		switch v := interface{}(m.GetLink()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, GetRedirectV1RequestValidationError{
+					field:  "Link",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, GetRedirectV1RequestValidationError{
+					field:  "Link",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetLink()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return GetRedirectV1RequestValidationError{
+				field:  "Link",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if all {
+		switch v := interface{}(m.GetRequest()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, GetRedirectV1RequestValidationError{
+					field:  "Request",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, GetRedirectV1RequestValidationError{
+					field:  "Request",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetRequest()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return GetRedirectV1RequestValidationError{
+				field:  "Request",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
 
 	if len(errors) > 0 {
 		return GetRedirectV1RequestMultiError(errors)
@@ -1904,6 +1960,114 @@ var _ interface {
 	Cause() error
 	ErrorName() string
 } = GetRedirectV1RequestValidationError{}
+
+// Validate checks the field values on RedirectRequestV1 with the rules defined
+// in the proto definition for this message. If any rules are violated, the
+// first error encountered is returned, or nil if there are no violations.
+func (m *RedirectRequestV1) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on RedirectRequestV1 with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// RedirectRequestV1MultiError, or nil if none found.
+func (m *RedirectRequestV1) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *RedirectRequestV1) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	// no validation rules for Method
+
+	// no validation rules for Headers
+
+	// no validation rules for Body
+
+	if len(errors) > 0 {
+		return RedirectRequestV1MultiError(errors)
+	}
+
+	return nil
+}
+
+// RedirectRequestV1MultiError is an error wrapping multiple validation errors
+// returned by RedirectRequestV1.ValidateAll() if the designated constraints
+// aren't met.
+type RedirectRequestV1MultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m RedirectRequestV1MultiError) Error() string {
+	msgs := make([]string, 0, len(m))
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m RedirectRequestV1MultiError) AllErrors() []error { return m }
+
+// RedirectRequestV1ValidationError is the validation error returned by
+// RedirectRequestV1.Validate if the designated constraints aren't met.
+type RedirectRequestV1ValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e RedirectRequestV1ValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e RedirectRequestV1ValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e RedirectRequestV1ValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e RedirectRequestV1ValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e RedirectRequestV1ValidationError) ErrorName() string {
+	return "RedirectRequestV1ValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e RedirectRequestV1ValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sRedirectRequestV1.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = RedirectRequestV1ValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = RedirectRequestV1ValidationError{}
 
 // Validate checks the field values on GetRedirectV1Response with the rules
 // defined in the proto definition for this message. If any rules are

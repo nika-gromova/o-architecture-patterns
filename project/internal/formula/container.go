@@ -15,6 +15,10 @@ type IoCFormulaOperatorsRegistrar struct {
 	Next models.Registrar
 }
 
+func (r *IoCFormulaOperatorsRegistrar) SetNext(next models.Registrar) {
+	r.Next = next
+}
+
 func (r *IoCFormulaOperatorsRegistrar) Register(oldCtx context.Context) (context.Context, error) {
 	ctx := ioc.NewScope(oldCtx)
 
@@ -133,6 +137,10 @@ type IoCFormulaStringVariableRegistrar struct {
 	Next         models.Registrar
 }
 
+func (r *IoCFormulaStringVariableRegistrar) SetNext(next models.Registrar) {
+	r.Next = next
+}
+
 func (r *IoCFormulaStringVariableRegistrar) Register(oldCtx context.Context) (context.Context, error) {
 	ctx := ioc.NewScope(oldCtx)
 
@@ -172,6 +180,10 @@ func (r *IoCFormulaStringVariableRegistrar) Register(oldCtx context.Context) (co
 type IoCFormulaDateTimeVariableRegistrar struct {
 	VariableName string
 	Next         models.Registrar
+}
+
+func (r *IoCFormulaDateTimeVariableRegistrar) SetNext(next models.Registrar) {
+	r.Next = next
 }
 
 func (r *IoCFormulaDateTimeVariableRegistrar) Register(oldCtx context.Context) (context.Context, error) {

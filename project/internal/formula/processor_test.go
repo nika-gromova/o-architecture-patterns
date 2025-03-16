@@ -289,3 +289,51 @@ func TestFormula_toExpressionNode(t *testing.T) {
 		})
 	}
 }
+
+func TestProcessor_toExpressionNode(t *testing.T) {
+	tests := []struct {
+		name string
+		arg  *models.ParsingNode
+		want interpreter.ExpressionNode
+	}{
+		{
+			name: "should build correctly",
+			arg: &models.ParsingNode{
+				Value:      models.EqualOperator,
+				IsOperator: true,
+				Left: &models.ParsingNode{
+					Value:      "Locale",
+					IsOperator: false,
+				},
+				Right: &models.ParsingNode{
+					Value:      "ru",
+					IsOperator: false,
+				},
+			},
+			want: &interpreter.NodeOperator{
+				Value: models.EqualOperator,
+				Left: &interpreter.NodeLeaf{
+					Value:        "Locale",
+					VariableName: "Locale",
+				},
+				Right: &interpreter.NodeLeaf{
+					Value:        "ru",
+					VariableName: "Locale",
+				},
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			f := &Processor{
+				storage: &testStorage{
+					knownVariableTokens: map[string]struct{}{
+						"Locale": {},
+					},
+				},
+			}
+			got := f.toExpressionNode(tt.arg)
+			require.Equal(t, tt.want, got)
+		})
+	}
+}

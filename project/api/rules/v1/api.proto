@@ -121,7 +121,8 @@ message GetRuleV1Response {
 }
 
 message GetRedirectV1Request {
-  string url = 1;
+  LinkV1 link = 1;
+  RedirectRequestV1 request = 2;
 }
 
 message RedirectRequestV1 {

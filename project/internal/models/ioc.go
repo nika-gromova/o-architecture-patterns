@@ -12,5 +12,5 @@ const (
 
 type Registrar interface {
 	Register(ctx context.Context) (context.Context, error)
-	// Append(func(context.Context) (context.Context, error))
+	SetNext(next Registrar)
 }

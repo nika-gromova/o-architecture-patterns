@@ -265,6 +265,24 @@
         }
       }
     },
+    "rulesRedirectRequestV1": {
+      "type": "object",
+      "properties": {
+        "method": {
+          "type": "string"
+        },
+        "headers": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
+        },
+        "body": {
+          "type": "string",
+          "format": "byte"
+        }
+      }
+    },
     "rulesRedirectV1": {
       "type": "object",
       "properties": {

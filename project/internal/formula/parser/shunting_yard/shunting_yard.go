@@ -13,6 +13,12 @@ var (
 
 type ShuntingYardStrategy struct{}
 
+type opts func(s *ShuntingYardStrategy)
+
+func New(opts ...opts) *ShuntingYardStrategy {
+	return &ShuntingYardStrategy{}
+}
+
 func (s *ShuntingYardStrategy) Parse(data *models.ParsingData) (*models.ParsingNode, error) {
 	postfix, err := parse(data.OperandsPriorities, data.Tokens)
 	if err != nil {
@@ -47,7 +53,7 @@ func parse(priorities map[string]int, tokens []string) ([]token, error) {
 			operators.Push(tk)
 		case ")":
 			foundLeftParenthesis := false
-			for isEmpty := operators.IsEmpty(); !isEmpty; {
+			for isEmpty := operators.IsEmpty(); !isEmpty; isEmpty = operators.IsEmpty() {
 				// pop until "(" is found
 				op := operators.Pop()
 				if op == "(" {
@@ -71,7 +77,7 @@ func parse(priorities map[string]int, tokens []string) ([]token, error) {
 			}
 
 			// pop till less priority found
-			for isEmpty := operators.IsEmpty(); !isEmpty; {
+			for isEmpty := operators.IsEmpty(); !isEmpty; isEmpty = operators.IsEmpty() {
 				op, _ := operators.Top()
 				if op == "(" {
 					break
@@ -92,7 +98,7 @@ func parse(priorities map[string]int, tokens []string) ([]token, error) {
 	}
 
 	// process remaining operators
-	for isEmpty := operators.IsEmpty(); !isEmpty; {
+	for isEmpty := operators.IsEmpty(); !isEmpty; isEmpty = operators.IsEmpty() {
 		op := operators.Pop()
 		if op == "(" {
 			return nil, ErrMismatchedParentheses

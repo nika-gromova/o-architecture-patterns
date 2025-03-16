@@ -6,7 +6,9 @@ import (
 	"github.com/nika-gromova/o-architecture-patterns/project/internal/models"
 )
 
-type Strategy func(data *models.ParsingData) (*models.ParsingNode, error)
+type Strategy interface {
+	Parse(data *models.ParsingData) (*models.ParsingNode, error)
+}
 
 func defaultPriorities() map[string]int {
 	return map[string]int{
@@ -74,7 +76,7 @@ func (p *Parser) Parse(input string) (*models.ParsingNode, error) {
 		OperandsPriorities: p.operatorsPriorities,
 		Tokens:             tokens,
 	}
-	return p.parseStrategy(parsingData)
+	return p.parseStrategy.Parse(parsingData)
 }
 
 func (p *Parser) parseToTokens(input string) []string {

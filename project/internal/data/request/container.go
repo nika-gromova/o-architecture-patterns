@@ -9,8 +9,12 @@ import (
 
 type IoCRequestHeaderDataConverterRegistrar struct {
 	Header    string
-	Converter func(string) (any, error)
+	Converter func(string) (string, any, error)
 	Next      models.Registrar
+}
+
+func (r *IoCRequestHeaderDataConverterRegistrar) SetNext(next models.Registrar) {
+	r.Next = next
 }
 
 func (r *IoCRequestHeaderDataConverterRegistrar) Register(oldCtx context.Context) (context.Context, error) {

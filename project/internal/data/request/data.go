@@ -35,7 +35,7 @@ func NewFromRequest(ctx context.Context, request *models.Request) (*RequestData,
 			continue
 		}
 		convertFunc, ok := converter.(func(string) (string, any, error))
-		if ok {
+		if !ok {
 			return nil, fmt.Errorf("failed to cast converter for header %s", key)
 		}
 
@@ -49,16 +49,18 @@ func NewFromRequest(ctx context.Context, request *models.Request) (*RequestData,
 	return data, nil
 }
 
-func ConvertLocaleHeader(value string) (any, error) {
-	return types.NewStringTypeFromString(value)
+func ConvertLocaleHeader(value string) (string, any, error) {
+	res, err := types.NewStringTypeFromString(value)
+	return models.LocaleVariable, res, err
 }
 
-func ConvertDateHeader(value string) (any, error) {
-	return types.NewDateTimeTypeFromString(value)
+func ConvertDateHeader(value string) (string, any, error) {
+	res, err := types.NewDateTimeTypeFromString(value)
+	return models.TimeVariable, res, err
 }
 
-func GetInitConverters() map[string]func(string) (any, error) {
-	return map[string]func(string) (any, error){
+func GetInitConverters() map[string]func(string) (string, any, error) {
+	return map[string]func(string) (string, any, error){
 		models.LocaleVariable: ConvertLocaleHeader,
 		models.TimeVariable:   ConvertDateHeader,
 	}

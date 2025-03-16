@@ -49,7 +49,7 @@ func (s *Storage) UpdateRule(_ context.Context, rule *models.Rule) error {
 	return nil
 }
 
-func (s *Storage) ListRules(_ context.Context, owner *models.Owner) ([]*models.Rule, error) {
+func (s *Storage) ListRules(_ context.Context, owner *models.User) ([]*models.Rule, error) {
 	rules, err := s.getRules(owner)
 	if err != nil {
 		return nil, err
@@ -57,11 +57,11 @@ func (s *Storage) ListRules(_ context.Context, owner *models.Owner) ([]*models.R
 	return lo.Values(rules), nil
 }
 
-func (s *Storage) GetRule(_ context.Context, owner *models.Owner, name string) (*models.Rule, error) {
+func (s *Storage) GetRule(_ context.Context, owner *models.User, name string) (*models.Rule, error) {
 	return s.getRule(owner, name)
 }
 
-func (s *Storage) getRule(owner *models.Owner, name string) (*models.Rule, error) {
+func (s *Storage) getRule(owner *models.User, name string) (*models.Rule, error) {
 	rules, err := s.getRules(owner)
 	if err != nil {
 		return nil, err
@@ -73,7 +73,7 @@ func (s *Storage) getRule(owner *models.Owner, name string) (*models.Rule, error
 	return rule, nil
 }
 
-func (s *Storage) getRules(owner *models.Owner) (map[string]*models.Rule, error) {
+func (s *Storage) getRules(owner *models.User) (map[string]*models.Rule, error) {
 	rules, found := s.rules[owner.UUID]
 	if !found {
 		return nil, fmt.Errorf("rules for owner %s not found", owner.UUID)
@@ -81,6 +81,13 @@ func (s *Storage) getRules(owner *models.Owner) (map[string]*models.Rule, error)
 	return rules, nil
 }
 
-func (s *Storage) GetRuleByBaseLink(context.Context, *models.Link) (*models.Rule, error) {
-	return nil, nil
+func (s *Storage) GetRuleByBaseLink(_ context.Context, base *models.Link) (*models.Rule, error) {
+	for _, rules := range s.rules {
+		for _, rule := range rules {
+			if rule.BaseLink.Equals(base) {
+				return rule, nil
+			}
+		}
+	}
+	return nil, fmt.Errorf("rule with base URL %s not found", base.URL)
 }

@@ -2,18 +2,22 @@ package models
 
 type Rule struct {
 	Name              string
-	Owner             *Owner
+	Owner             *User
 	BaseLink          *Link
 	DefaultRedirectTo *Link
 	Redirections      []*Redirection
 }
 
-type Owner struct {
+type User struct {
 	UUID string
 }
 
 type Link struct {
 	URL string
+}
+
+func (l *Link) Equals(another *Link) bool {
+	return l.URL == another.URL
 }
 
 type Redirection struct {

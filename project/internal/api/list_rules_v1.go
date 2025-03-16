@@ -9,13 +9,11 @@ import (
 )
 
 func (s *Service) ListRulesV1(ctx context.Context, _ *rules_v1.ListRulesV1Request) (*rules_v1.ListRulesV1Response, error) {
-	uuid, err := auth.UserIDFromContext(ctx)
+	user, err := auth.UserFromContext(ctx)
 	if err != nil {
 		return nil, err
 	}
-	rules, err := s.rules.ListRules(ctx, &models.Owner{
-		UUID: uuid,
-	})
+	rules, err := s.rules.ListRules(ctx, user)
 	if err != nil {
 		return nil, err
 	}

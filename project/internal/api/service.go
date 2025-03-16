@@ -13,16 +13,10 @@ type RulesService interface {
 	CreateRule(ctx context.Context, rule *models.Rule) error
 	DeleteRule(ctx context.Context, rule *models.Rule) error
 	UpdateRule(ctx context.Context, rule *models.Rule) error
-	ListRules(ctx context.Context, owner *models.Owner) ([]*models.Rule, error)
-	GetRule(ctx context.Context, owner *models.Owner, name string) (*models.Rule, error)
-}
+	ListRules(ctx context.Context, owner *models.User) ([]*models.Rule, error)
+	GetRule(ctx context.Context, owner *models.User, name string) (*models.Rule, error)
 
-type Storage interface {
-	CreateRule(context.Context, *models.Rule) error
-	DeleteRule(context.Context, *models.Rule) error
-	UpdateRule(context.Context, *models.Rule) error
-	ListRules(context.Context, *models.Owner) ([]*models.Rule, error)
-	GetRule(context.Context, *models.Owner, string) (*models.Rule, error)
+	FindRedirect(ctx context.Context, base *models.Link, request *models.Request) (*models.Link, error)
 }
 
 type Service struct {

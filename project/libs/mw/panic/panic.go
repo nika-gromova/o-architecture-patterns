@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"net/http"
+	"runtime/debug"
 
 	log "github.com/sirupsen/logrus"
 	"google.golang.org/grpc"
@@ -15,6 +16,7 @@ func InterceptorGRPC(ctx context.Context, req interface{}, info *grpc.UnaryServe
 	defer func() {
 		if e := recover(); e != nil {
 			log.Errorf("panic: %v\n", e)
+			log.Println("stacktrace from panic: \n" + string(debug.Stack()))
 			err = status.Errorf(codes.Internal, "panic: %v", e)
 		}
 	}()

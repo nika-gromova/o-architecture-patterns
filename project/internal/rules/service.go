@@ -4,8 +4,9 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/nika-gromova/o-architecture-patterns/project/internal/formula/data"
+	data "github.com/nika-gromova/o-architecture-patterns/project/internal/data/request"
 	"github.com/nika-gromova/o-architecture-patterns/project/internal/models"
+	"github.com/nika-gromova/o-architecture-patterns/project/libs/ioc"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -15,11 +16,17 @@ var (
 )
 
 type Storage interface {
+	CreateRule(context.Context, *models.Rule) error
+	DeleteRule(context.Context, *models.Rule) error
+	UpdateRule(context.Context, *models.Rule) error
+	ListRules(context.Context, *models.User) ([]*models.Rule, error)
+	GetRule(context.Context, *models.User, string) (*models.Rule, error)
+
 	GetRuleByBaseLink(context.Context, *models.Link) (*models.Rule, error)
 }
 
 type FormulaProcessor interface {
-	Evaluate(ctx context.Context, input string, data models.Data[any]) (bool, error)
+	Evaluate(ctx context.Context, input *models.Formula, data models.Data[any]) (bool, error)
 }
 
 type RedirectStrategy interface {
@@ -36,10 +43,11 @@ type Service struct {
 
 type opts func(s *Service)
 
-func NewService(registrar models.Registrar, storage Storage, opts ...opts) (*Service, error) {
+func NewService(storage Storage, processor FormulaProcessor, opts ...opts) (*Service, error) {
 	s := &Service{
-		storage: storage,
-		baseCtx: context.Background(),
+		storage:   storage,
+		processor: processor,
+		baseCtx:   context.Background(),
 	}
 	s.redirectStrategy = s
 
@@ -47,12 +55,6 @@ func NewService(registrar models.Registrar, storage Storage, opts ...opts) (*Ser
 		opt(s)
 	}
 
-	ctx, err := registrar.Register(s.baseCtx)
-	if err != nil {
-		return nil, err
-	}
-
-	s.baseCtx = ctx
 	return s, nil
 }
 
@@ -69,6 +71,8 @@ func WithBaseCtx(ctx context.Context) opts {
 }
 
 func (s *Service) FindRedirect(ctx context.Context, base *models.Link, request *models.Request) (*models.Link, error) {
+	ctx = ioc.NewFromParent(s.baseCtx, ctx)
+
 	rule, err := s.storage.GetRuleByBaseLink(ctx, base)
 	if err != nil {
 		return nil, err
@@ -94,9 +98,9 @@ func (s *Service) FindRedirect(ctx context.Context, base *models.Link, request *
 func (s *Service) Redirect(ctx context.Context, rule *models.Rule, data models.Data[any]) *models.Link {
 	target := rule.DefaultRedirectTo
 	for _, redirect := range rule.Redirections {
-		isTrue, err := s.processor.Evaluate(ctx, redirect.Target.URL, data)
+		isTrue, err := s.processor.Evaluate(ctx, redirect.Formula, data)
 		if err != nil {
-			log.Errorf("evaluate redirect url: %s, %s", redirect.Target.URL, err.Error())
+			log.Errorf("evaluate formula: %s, %s", redirect.Formula.Expression, err.Error())
 			continue
 		}
 		if isTrue {

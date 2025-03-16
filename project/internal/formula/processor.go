@@ -17,8 +17,8 @@ type Storage interface {
 }
 
 type Cache interface {
-	Set(key string, expression interpreter.AbstractExpression[any])
-	Get(key string) (expression interpreter.AbstractExpression[any])
+	Set(key string, object any)
+	Get(key string) (any, bool)
 }
 
 type Processor struct {
@@ -35,15 +35,19 @@ func New(parser Parser, storage Storage, cache Cache) *Processor {
 	}
 }
 
-func (p *Processor) Evaluate(ctx context.Context, input string, data models.Data[any]) (bool, error) {
-	expression := p.cache.Get(input)
+func (p *Processor) Evaluate(ctx context.Context, input *models.Formula, data models.Data[any]) (bool, error) {
+	var expression interpreter.AbstractExpression[any]
+	object, exists := p.cache.Get(input.Expression)
+	if exists {
+		expression = object.(interpreter.AbstractExpression[any])
+	}
 	if expression == nil {
 		var err error
-		expression, err = p.buildExpression(ctx, input)
+		expression, err = p.buildExpression(ctx, input.Expression)
 		if err != nil {
-			return false, fmt.Errorf("failed to build expression for `%s`: %w", input, err)
+			return false, fmt.Errorf("failed to build expression for `%s`: %w", input.Expression, err)
 		}
-		p.cache.Set(input, expression)
+		p.cache.Set(input.Expression, expression)
 	}
 
 	return expression.Interpret(data)
