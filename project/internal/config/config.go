@@ -2,6 +2,7 @@ package config
 
 import (
 	"fmt"
+	"os"
 	"time"
 
 	"github.com/lalamove/konfig"
@@ -10,9 +11,11 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
+const configPathEnv = "CONFIG_PATH"
+
 var configFiles = []klfile.File{
 	{
-		Path:   "config.yaml",
+		Path:   os.Getenv(configPathEnv),
 		Parser: kpyaml.Parser,
 	},
 }

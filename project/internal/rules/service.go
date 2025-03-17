@@ -10,18 +10,12 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-var (
-	ErrNotFound        = fmt.Errorf("not found")
-	ErrInvalidArgument = fmt.Errorf("invalid argument")
-)
-
 type Storage interface {
 	CreateRule(context.Context, *models.Rule) error
 	DeleteRule(context.Context, *models.Rule) error
 	UpdateRule(context.Context, *models.Rule) error
 	ListRules(context.Context, *models.User) ([]*models.Rule, error)
 	GetRule(context.Context, *models.User, string) (*models.Rule, error)
-
 	GetRuleByBaseLink(context.Context, *models.Link) (*models.Rule, error)
 }
 
@@ -79,17 +73,17 @@ func (s *Service) FindRedirect(ctx context.Context, base *models.Link, request *
 	}
 
 	if rule == nil {
-		return nil, fmt.Errorf("rule: %w", ErrNotFound)
+		return nil, fmt.Errorf("%w: rule", models.ErrNotFound)
 	}
 
 	requestData, err := data.NewFromRequest(ctx, request)
 	if err != nil {
-		return nil, fmt.Errorf("convert request: %w, %w", ErrInvalidArgument, err)
+		return nil, fmt.Errorf("%w: convert request: %w", models.ErrInvalidArgument, err)
 	}
 
 	target := s.redirectStrategy.Redirect(ctx, rule, requestData)
 	if target == nil {
-		return nil, fmt.Errorf("redirect for %s, %w", base.URL, ErrNotFound)
+		return nil, fmt.Errorf("%w: redirect for %s", models.ErrNotFound, base.URL)
 	}
 
 	return target, nil

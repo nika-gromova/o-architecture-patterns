@@ -19,10 +19,6 @@ type NodeOperator struct {
 }
 
 func (ns *NodeOperator) ToExpression(ctx context.Context) (any, error) {
-	if ns == nil {
-		return &NilExpression[any]{}, nil
-	}
-
 	var (
 		left, right any
 		err         error
@@ -59,16 +55,9 @@ type NodeLeaf struct {
 }
 
 func (nl *NodeLeaf) ToExpression(ctx context.Context) (any, error) {
-	if nl == nil {
-		return &NilExpression[any]{}, nil
-	}
-	if nl.VariableName == "" {
-		return nil, fmt.Errorf("invalid operand: %s", nl.Value)
-	}
-
 	expr, err := ioc.Resolve(ctx, models.IoCFormulaInterpreterVariablesDomain+nl.VariableName, nl.Value)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("invalid operand: %w", err)
 	}
 
 	return expr, nil

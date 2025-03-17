@@ -8,6 +8,8 @@ import (
 	"github.com/nika-gromova/o-architecture-patterns/project/internal/config"
 	"github.com/nika-gromova/o-architecture-patterns/project/internal/inniter"
 	"github.com/nika-gromova/o-architecture-patterns/project/internal/mw/errors"
+	authlib "github.com/nika-gromova/o-architecture-patterns/project/libs/auth"
+	"github.com/nika-gromova/o-architecture-patterns/project/libs/mw/auth"
 	grpcservice "github.com/nika-gromova/o-architecture-patterns/project/libs/service"
 	log "github.com/sirupsen/logrus"
 )
@@ -23,18 +25,18 @@ func main() {
 		log.Fatal(err)
 	}
 
-	//authHelper := &auth.Interceptor{
-	//	Authenticator: authlib.NewAuthenticator(
-	//		cfg.GetSecret(config.JWTPublicKey),
-	//	),
-	//}
+	authHelper := &auth.Interceptor{
+		Authenticator: authlib.NewAuthenticator(
+			cfg.GetSecret(config.JWTPublicKey),
+		),
+	}
 	manager, err := grpcservice.New(service,
 		grpcservice.WithGRPCInterceptors(
-			//authHelper.InterceptorGRPC,
+			authHelper.InterceptorGRPC,
 			errors.InterceptorGRPC,
 		),
 		grpcservice.WithHTTPInterceptors(
-		//authHelper.InterceptorHTTP,
+			authHelper.InterceptorHTTP,
 		),
 		grpcservice.WithCustomErrorHandler(
 			errors.CustomHTTPErrorHandler,

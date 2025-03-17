@@ -24,7 +24,7 @@ func (s *Storage) CreateRule(_ context.Context, rule *models.Rule) error {
 		s.rules[rule.Owner.UUID] = make(map[string]*models.Rule)
 	}
 	if _, exists := rules[rule.Name]; exists {
-		return fmt.Errorf("rule %s already exists for user %s", rule.Name, rule.Owner.UUID)
+		return fmt.Errorf("%w: rule %s already exists for user %s", models.ErrAlreadyExists, rule.Name, rule.Owner.UUID)
 	}
 
 	s.rules[rule.Owner.UUID][rule.Name] = rule
@@ -68,7 +68,7 @@ func (s *Storage) getRule(owner *models.User, name string) (*models.Rule, error)
 	}
 	rule, exists := rules[name]
 	if !exists {
-		return nil, fmt.Errorf("rule %s not found for user %s", rule.Name, rule.Owner.UUID)
+		return nil, fmt.Errorf("%w: rule %s not found for user %s", models.ErrNotFound, rule.Name, rule.Owner.UUID)
 	}
 	return rule, nil
 }
@@ -76,7 +76,7 @@ func (s *Storage) getRule(owner *models.User, name string) (*models.Rule, error)
 func (s *Storage) getRules(owner *models.User) (map[string]*models.Rule, error) {
 	rules, found := s.rules[owner.UUID]
 	if !found {
-		return nil, fmt.Errorf("rules for owner %s not found", owner.UUID)
+		return nil, fmt.Errorf("%w: rules for owner %s not found", models.ErrNotFound, owner.UUID)
 	}
 	return rules, nil
 }
@@ -89,5 +89,5 @@ func (s *Storage) GetRuleByBaseLink(_ context.Context, base *models.Link) (*mode
 			}
 		}
 	}
-	return nil, fmt.Errorf("rule with base URL %s not found", base.URL)
+	return nil, fmt.Errorf("%w: rule with base URL %s not found", models.ErrNotFound, base.URL)
 }
