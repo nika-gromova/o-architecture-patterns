@@ -12,5 +12,4 @@ const (
 
 type Registrar interface {
 	Register(ctx context.Context) (context.Context, error)
-	SetNext(next Registrar)
 }

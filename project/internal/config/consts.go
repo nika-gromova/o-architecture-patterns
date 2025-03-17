@@ -6,9 +6,9 @@ const (
 )
 
 // values
-
 const (
-	Variables          = "variables"
-	VariablesToHeaders = "variables_to_headers"
-	VariablesTypes     = "variables_types"
+	AppName   = "app_name"
+	GrpcPort  = "grpc_port"
+	HttpPort  = "http_port"
+	AdminPort = "admin_port"
 )

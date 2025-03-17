@@ -7,19 +7,11 @@ import (
 	"github.com/nika-gromova/o-architecture-patterns/project/internal/formula/interpreter"
 	"github.com/nika-gromova/o-architecture-patterns/project/internal/models"
 	"github.com/nika-gromova/o-architecture-patterns/project/internal/models/types"
+	"github.com/nika-gromova/o-architecture-patterns/project/internal/registrars"
 	"github.com/nika-gromova/o-architecture-patterns/project/tests/mocks"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/mock/gomock"
 )
-
-type testStorage struct {
-	knownVariableTokens map[string]struct{}
-}
-
-func (ts *testStorage) IsKnownVariableToken(value string) bool {
-	_, found := ts.knownVariableTokens[value]
-	return found
-}
 
 func TestFormula_buildExpression(t *testing.T) {
 	type fields struct {
@@ -137,8 +129,8 @@ func TestFormula_buildExpression(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			registrar := &IoCFormulaOperatorsRegistrar{
-				Next: &IoCFormulaStringVariableRegistrar{
+			registrar := &registrars.IoCFormulaOperatorsRegistrar{
+				Next: &registrars.IoCFormulaStringVariableRegistrar{
 					VariableName: "Locale",
 				},
 			}
@@ -147,9 +139,6 @@ func TestFormula_buildExpression(t *testing.T) {
 			require.NoError(t, err)
 
 			f := &Processor{
-				storage: &testStorage{
-					knownVariableTokens: tt.fields.knownVariableTokens,
-				},
 				parser: tt.fields.parser(),
 			}
 			got, err := f.buildExpression(ctx, "test")
@@ -279,12 +268,17 @@ func TestFormula_toExpressionNode(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			f := &Processor{
-				storage: &testStorage{
-					knownVariableTokens: tt.fields.knownVariableTokens,
+			f := &Processor{}
+
+			registrar := &registrars.IoCFormulaOperatorsRegistrar{
+				Next: &registrars.IoCFormulaStringVariableRegistrar{
+					VariableName: "Locale",
 				},
 			}
-			got := f.toExpressionNode(tt.args.node)
+			ctx, err := registrar.Register(context.Background())
+			require.NoError(t, err)
+
+			got := f.toExpressionNode(ctx, tt.args.node)
 			require.Equal(t, tt.want, got)
 		})
 	}
@@ -325,14 +319,16 @@ func TestProcessor_toExpressionNode(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			f := &Processor{
-				storage: &testStorage{
-					knownVariableTokens: map[string]struct{}{
-						"Locale": {},
-					},
+			registrar := &registrars.IoCFormulaOperatorsRegistrar{
+				Next: &registrars.IoCFormulaStringVariableRegistrar{
+					VariableName: "Locale",
 				},
 			}
-			got := f.toExpressionNode(tt.arg)
+			ctx, err := registrar.Register(context.Background())
+			require.NoError(t, err)
+
+			f := &Processor{}
+			got := f.toExpressionNode(ctx, tt.arg)
 			require.Equal(t, tt.want, got)
 		})
 	}

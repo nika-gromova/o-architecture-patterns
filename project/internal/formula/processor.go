@@ -6,14 +6,11 @@ import (
 
 	"github.com/nika-gromova/o-architecture-patterns/project/internal/formula/interpreter"
 	"github.com/nika-gromova/o-architecture-patterns/project/internal/models"
+	"github.com/nika-gromova/o-architecture-patterns/project/libs/ioc"
 )
 
 type Parser interface {
 	Parse(input string) (*models.ParsingNode, error)
-}
-
-type Storage interface {
-	IsKnownVariableToken(string) bool
 }
 
 type Cache interface {
@@ -22,16 +19,14 @@ type Cache interface {
 }
 
 type Processor struct {
-	parser  Parser
-	storage Storage
-	cache   Cache
+	parser Parser
+	cache  Cache
 }
 
-func New(parser Parser, storage Storage, cache Cache) *Processor {
+func New(parser Parser, cache Cache) *Processor {
 	return &Processor{
-		parser:  parser,
-		storage: storage,
-		cache:   cache,
+		parser: parser,
+		cache:  cache,
 	}
 }
 
@@ -59,7 +54,11 @@ func (p *Processor) buildExpression(ctx context.Context, input string) (interpre
 		return nil, err
 	}
 
-	expression, err := p.toExpressionNode(parsed).ToExpression(ctx)
+	expressionNode := p.toExpressionNode(ctx, parsed)
+	if expressionNode == nil {
+		return nil, fmt.Errorf("failed to build expression node for `%s`", input)
+	}
+	expression, err := expressionNode.ToExpression(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -71,30 +70,30 @@ func (p *Processor) buildExpression(ctx context.Context, input string) (interpre
 	return result, nil
 }
 
-func (p *Processor) toExpressionNode(node *models.ParsingNode) interpreter.ExpressionNode {
+func (p *Processor) toExpressionNode(ctx context.Context, node *models.ParsingNode) interpreter.ExpressionNode {
 	if !node.IsOperator || node.Left == nil || node.Right == nil {
 		return nil
 	}
 
-	return p.toExpression(node.Value, node.Left, node.Right)
+	return p.toExpression(ctx, node.Value, node.Left, node.Right)
 }
 
-func (p *Processor) toExpression(operator string, left *models.ParsingNode, right *models.ParsingNode) interpreter.ExpressionNode {
+func (p *Processor) toExpression(ctx context.Context, operator string, left *models.ParsingNode, right *models.ParsingNode) interpreter.ExpressionNode {
 	var leftExpression, rightExpression interpreter.ExpressionNode
 
 	if left.IsOperator {
-		leftExpression = p.toExpression(left.Value, left.Left, left.Right)
+		leftExpression = p.toExpression(ctx, left.Value, left.Left, left.Right)
 	}
 	if right.IsOperator {
-		rightExpression = p.toExpression(right.Value, right.Left, right.Right)
+		rightExpression = p.toExpression(ctx, right.Value, right.Left, right.Right)
 	}
 	if !left.IsOperator && !right.IsOperator {
 		// determine the variable - time, locale, etc
 		var variableName string
-		if p.storage.IsKnownVariableToken(left.Value) {
+		if p.isKnownVariableToken(ctx, left.Value) {
 			variableName = left.Value
 		}
-		if p.storage.IsKnownVariableToken(right.Value) {
+		if p.isKnownVariableToken(ctx, right.Value) {
 			variableName = right.Value
 		}
 
@@ -117,4 +116,9 @@ func (p *Processor) toExpression(operator string, left *models.ParsingNode, righ
 		Left:  leftExpression,
 		Right: rightExpression,
 	}
+}
+
+func (p *Processor) isKnownVariableToken(ctx context.Context, token string) bool {
+	_, err := ioc.Resolve(ctx, models.IoCFormulaInterpreterVariablesDomain+token, token)
+	return err == nil
 }

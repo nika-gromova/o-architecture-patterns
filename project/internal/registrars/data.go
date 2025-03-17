@@ -1,4 +1,4 @@
-package request
+package registrars
 
 import (
 	"context"
@@ -10,11 +10,6 @@ import (
 type IoCRequestHeaderDataConverterRegistrar struct {
 	Header    string
 	Converter func(string) (string, any, error)
-	Next      models.Registrar
-}
-
-func (r *IoCRequestHeaderDataConverterRegistrar) SetNext(next models.Registrar) {
-	r.Next = next
 }
 
 func (r *IoCRequestHeaderDataConverterRegistrar) Register(oldCtx context.Context) (context.Context, error) {
@@ -28,8 +23,5 @@ func (r *IoCRequestHeaderDataConverterRegistrar) Register(oldCtx context.Context
 		return nil, err
 	}
 
-	if r.Next != nil {
-		return r.Next.Register(ctx)
-	}
 	return ctx, nil
 }

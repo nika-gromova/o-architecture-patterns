@@ -1,4 +1,4 @@
-package grpcservice
+package service
 
 import (
 	"context"
@@ -21,7 +21,7 @@ import (
 
 type HTTPInterceptor func(next http.Handler) http.Handler
 
-type ServiceManager struct {
+type Manager struct {
 	grpcServer  *grpc.Server
 	httpServer  *http.Server
 	adminServer *http.Server
@@ -38,16 +38,16 @@ type Service interface {
 	RegisterHTTP(ctx context.Context, mux *runtime.ServeMux) error
 }
 
-type opts func(s *ServiceManager)
+type opts func(s *Manager)
 
 func WithServiceName(serviceName string) opts {
-	return func(s *ServiceManager) {
+	return func(s *Manager) {
 		s.serviceName = serviceName
 	}
 }
 
 func WithPorts(httpPort, grpcPort, adminPort int) opts {
-	return func(s *ServiceManager) {
+	return func(s *Manager) {
 		s.grpcPort = grpcPort
 		s.adminPort = adminPort
 		s.httpPort = httpPort
@@ -55,7 +55,7 @@ func WithPorts(httpPort, grpcPort, adminPort int) opts {
 }
 
 func WithGRPCInterceptors(interceptors ...grpc.UnaryServerInterceptor) opts {
-	return func(s *ServiceManager) {
+	return func(s *Manager) {
 		for _, interceptor := range interceptors {
 			s.grpcInterceptors = append(s.grpcInterceptors, interceptor)
 		}
@@ -63,7 +63,7 @@ func WithGRPCInterceptors(interceptors ...grpc.UnaryServerInterceptor) opts {
 }
 
 func WithHTTPInterceptors(interceptors ...func(next http.Handler) http.Handler) opts {
-	return func(s *ServiceManager) {
+	return func(s *Manager) {
 		for _, interceptor := range interceptors {
 			s.httpInterceptors = append(s.httpInterceptors, interceptor)
 		}
@@ -71,13 +71,13 @@ func WithHTTPInterceptors(interceptors ...func(next http.Handler) http.Handler) 
 }
 
 func WithCustomErrorHandler(customErrorHandler runtime.ErrorHandlerFunc) opts {
-	return func(s *ServiceManager) {
+	return func(s *Manager) {
 		s.customErrorHandler = customErrorHandler
 	}
 }
 
-func New(service Service, opts ...opts) (*ServiceManager, error) {
-	s := &ServiceManager{}
+func New(service Service, opts ...opts) (*Manager, error) {
+	s := &Manager{}
 
 	for _, opt := range opts {
 		opt(s)
@@ -90,7 +90,7 @@ func New(service Service, opts ...opts) (*ServiceManager, error) {
 	return s, nil
 }
 
-func (s *ServiceManager) initGRPCServer(service Service) {
+func (s *Manager) initGRPCServer(service Service) {
 	serverOptions := []grpc.ServerOption{
 		grpc.ChainUnaryInterceptor(panic.InterceptorGRPC),
 		grpc.ChainUnaryInterceptor(logging.InterceptorGRPC),
@@ -106,7 +106,7 @@ func (s *ServiceManager) initGRPCServer(service Service) {
 	s.grpcServer = server
 }
 
-func (s *ServiceManager) initHTTPServer(service Service) {
+func (s *Manager) initHTTPServer(service Service) {
 	var options []runtime.ServeMuxOption
 	if s.customErrorHandler != nil {
 		options = append(options, runtime.WithErrorHandler(s.customErrorHandler))
@@ -137,7 +137,7 @@ func (s *ServiceManager) initHTTPServer(service Service) {
 	}
 }
 
-func (s *ServiceManager) initAdminServer() {
+func (s *Manager) initAdminServer() {
 
 	mux := http.NewServeMux()
 
@@ -176,7 +176,7 @@ func (s *ServiceManager) initAdminServer() {
 	}
 }
 
-func (s *ServiceManager) RunService() {
+func (s *Manager) RunService() {
 	lis, err := net.Listen("tcp", fmt.Sprintf(":%d", s.grpcPort))
 	if err != nil {
 		log.Fatalf("failed to listen tcp: %v", err)

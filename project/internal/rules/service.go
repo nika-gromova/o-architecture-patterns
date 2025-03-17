@@ -43,7 +43,7 @@ type Service struct {
 
 type opts func(s *Service)
 
-func NewService(storage Storage, processor FormulaProcessor, opts ...opts) (*Service, error) {
+func NewService(storage Storage, processor FormulaProcessor, opts ...opts) *Service {
 	s := &Service{
 		storage:   storage,
 		processor: processor,
@@ -55,7 +55,7 @@ func NewService(storage Storage, processor FormulaProcessor, opts ...opts) (*Ser
 		opt(s)
 	}
 
-	return s, nil
+	return s
 }
 
 func WithRedirectStrategy(strategy RedirectStrategy) opts {

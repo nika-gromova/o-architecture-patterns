@@ -2,14 +2,11 @@ package config
 
 import (
 	"fmt"
-	"strings"
 	"time"
 
 	"github.com/lalamove/konfig"
 	"github.com/lalamove/konfig/loader/klfile"
 	"github.com/lalamove/konfig/parser/kpyaml"
-	"github.com/nika-gromova/o-architecture-patterns/project/internal/models"
-	"github.com/samber/lo"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -55,78 +52,8 @@ func (c *Config) GetValue(key string) string {
 	return c.cfg.String(key)
 }
 
-func (c *Config) GetValues(key string) []string {
-	return c.cfg.StringSlice(key)
-}
-
-func (c *Config) GetMap(key string) map[string]string {
-	pairs := c.cfg.StringSlice(key)
-	result := make(map[string]string, len(pairs))
-	for _, pair := range pairs {
-		split := strings.Split(pair, ":")
-		if len(split) != 2 {
-			continue
-		}
-		result[split[0]] = split[1]
-	}
+func (c *Config) GetInt(key string) int {
+	var result int
+	result = c.cfg.Int(key)
 	return result
-}
-
-func (c *Config) GetHeaderVariables() []*models.HeaderVariable {
-	var (
-		variables          = c.getVariables()
-		variablesToHeaders = c.getVariableToHeaders()
-		variablesTypes     = c.getVariablesTypes()
-	)
-
-	result := make([]*models.HeaderVariable, 0, len(variables))
-	for _, variable := range variables {
-		header, ok := variablesToHeaders[variable]
-		if !ok {
-			continue
-		}
-		variableType, ok := variablesTypes[variable]
-		if !ok {
-			continue
-		}
-		result = append(result, &models.HeaderVariable{
-			Name:   variable,
-			Header: header,
-			Type:   variableType,
-		})
-	}
-	return result
-}
-
-func (c *Config) getVariables() []string {
-	return c.cfg.StringSlice(Variables)
-}
-
-func (c *Config) getVariableToHeaders() map[string]string {
-	return c.getMap(VariablesToHeaders)
-}
-
-func (c *Config) getVariablesTypes() map[string]string {
-	return c.getMap(VariablesTypes)
-}
-
-func (c *Config) getMap(key string) map[string]string {
-	if !c.cfg.Exists(key) {
-		return nil
-	}
-	values := c.cfg.StringSlice(key)
-	var result = make(map[string]string, len(values))
-	for _, elem := range values {
-		split := strings.Split(elem, ":")
-		if len(split) != 2 {
-			continue
-		}
-		result[split[0]] = split[1]
-	}
-	return result
-}
-
-func (c *Config) IsKnownVariableToken(key string) bool {
-	variables := c.getVariables()
-	return lo.Contains(variables, key)
 }

@@ -7,15 +7,14 @@ import (
 	logger "github.com/sirupsen/logrus"
 
 	"github.com/nika-gromova/o-architecture-patterns/project/internal/models"
-	"github.com/nika-gromova/o-architecture-patterns/project/internal/models/types"
 	"github.com/nika-gromova/o-architecture-patterns/project/libs/ioc"
 )
 
-type RequestData struct {
+type Data struct {
 	values map[string]any
 }
 
-func (ic *RequestData) GetValue(key string) (any, error) {
+func (ic *Data) GetValue(key string) (any, error) {
 	value, found := ic.values[key]
 	if !found {
 		return nil, fmt.Errorf("value for key %s not found", key)
@@ -23,8 +22,8 @@ func (ic *RequestData) GetValue(key string) (any, error) {
 	return value, nil
 }
 
-func NewFromRequest(ctx context.Context, request *models.Request) (*RequestData, error) {
-	data := &RequestData{
+func NewFromRequest(ctx context.Context, request *models.Request) (*Data, error) {
+	data := &Data{
 		values: make(map[string]any),
 	}
 
@@ -47,21 +46,4 @@ func NewFromRequest(ctx context.Context, request *models.Request) (*RequestData,
 	}
 
 	return data, nil
-}
-
-func ConvertLocaleHeader(value string) (string, any, error) {
-	res, err := types.NewStringTypeFromString(value)
-	return models.LocaleVariable, res, err
-}
-
-func ConvertDateHeader(value string) (string, any, error) {
-	res, err := types.NewDateTimeTypeFromString(value)
-	return models.TimeVariable, res, err
-}
-
-func GetInitConverters() map[string]func(string) (string, any, error) {
-	return map[string]func(string) (string, any, error){
-		models.LocaleVariable: ConvertLocaleHeader,
-		models.TimeVariable:   ConvertDateHeader,
-	}
 }
