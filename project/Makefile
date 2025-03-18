@@ -56,3 +56,36 @@ generate: generate-rules
 
 build:
 	go build -o bin/app github.com/nika-gromova/o-architecture-patterns/project/cmd
+
+go-tests:
+	go test $(go list ./... | grep -vE "/(tests|pkg|vendor-proto)") -coverprofile cover.out.tmp && \
+    cat cover.out.tmp | grep -v "_mock.go" > cover.out && \
+    rm cover.out.tmp && \
+    go tool cover -html cover.out -o cover.html
+
+
+.PHONY: test coverage clean
+
+# Имя файла с покрытием
+COVERAGE_FILE=coverage.out
+COVERAGE_HTML=coverage.html
+
+# Список всех пакетов, кроме tests и pkg
+PKGS := $(shell go list ./... | grep -vE "^.*/(tests|pkg|vendor-proto|cmd)")
+
+# Запуск тестов с подсчетом покрытия
+test:
+	go test -v $(PKGS)
+
+# Подсчет покрытия тестами
+coverage: test
+	go test -coverprofile=$(COVERAGE_FILE) $(PKGS)
+	go tool cover -func=$(COVERAGE_FILE)
+
+# Создание HTML-отчета покрытия
+coverage-html: coverage
+	go tool cover -html=$(COVERAGE_FILE) -o $(COVERAGE_HTML)
+
+# Очистка временных файлов
+test-clean:
+	rm -f $(COVERAGE_FILE) $(COVERAGE_HTML)

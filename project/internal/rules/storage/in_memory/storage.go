@@ -3,35 +3,42 @@ package in_memory
 import (
 	"context"
 	"fmt"
+	"sync"
 
 	"github.com/nika-gromova/o-architecture-patterns/project/internal/models"
-	"github.com/samber/lo"
 )
 
 type Storage struct {
-	rules map[string]map[string]*models.Rule
+	rules map[string]map[string]models.Rule
+	mu    sync.RWMutex
 }
 
 func NewStorage() *Storage {
 	return &Storage{
-		rules: make(map[string]map[string]*models.Rule),
+		rules: make(map[string]map[string]models.Rule),
 	}
 }
 
 func (s *Storage) CreateRule(_ context.Context, rule *models.Rule) error {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
 	rules, found := s.rules[rule.Owner.UUID]
 	if !found {
-		s.rules[rule.Owner.UUID] = make(map[string]*models.Rule)
+		s.rules[rule.Owner.UUID] = make(map[string]models.Rule)
 	}
 	if _, exists := rules[rule.Name]; exists {
 		return fmt.Errorf("%w: rule %s already exists for user %s", models.ErrAlreadyExists, rule.Name, rule.Owner.UUID)
 	}
 
-	s.rules[rule.Owner.UUID][rule.Name] = rule
+	s.rules[rule.Owner.UUID][rule.Name] = *rule
 	return nil
 }
 
 func (s *Storage) DeleteRule(_ context.Context, rule *models.Rule) error {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
 	_, err := s.getRule(rule.Owner, rule.Name)
 	if err != nil {
 		return err
@@ -41,23 +48,36 @@ func (s *Storage) DeleteRule(_ context.Context, rule *models.Rule) error {
 }
 
 func (s *Storage) UpdateRule(_ context.Context, rule *models.Rule) error {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
 	_, err := s.getRule(rule.Owner, rule.Name)
 	if err != nil {
 		return err
 	}
-	s.rules[rule.Owner.UUID][rule.Name] = rule
+	s.rules[rule.Owner.UUID][rule.Name] = *rule
 	return nil
 }
 
 func (s *Storage) ListRules(_ context.Context, owner *models.User) ([]*models.Rule, error) {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+
 	rules, err := s.getRules(owner)
 	if err != nil {
 		return nil, err
 	}
-	return lo.Values(rules), nil
+	result := make([]*models.Rule, 0, len(rules))
+	for _, rule := range rules {
+		result = append(result, &rule)
+	}
+	return result, nil
 }
 
 func (s *Storage) GetRule(_ context.Context, owner *models.User, name string) (*models.Rule, error) {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+
 	return s.getRule(owner, name)
 }
 
@@ -70,10 +90,10 @@ func (s *Storage) getRule(owner *models.User, name string) (*models.Rule, error)
 	if !exists {
 		return nil, fmt.Errorf("%w: rule %s not found for user %s", models.ErrNotFound, rule.Name, rule.Owner.UUID)
 	}
-	return rule, nil
+	return &rule, nil
 }
 
-func (s *Storage) getRules(owner *models.User) (map[string]*models.Rule, error) {
+func (s *Storage) getRules(owner *models.User) (map[string]models.Rule, error) {
 	rules, found := s.rules[owner.UUID]
 	if !found {
 		return nil, fmt.Errorf("%w: rules for owner %s not found", models.ErrNotFound, owner.UUID)
@@ -82,10 +102,13 @@ func (s *Storage) getRules(owner *models.User) (map[string]*models.Rule, error) 
 }
 
 func (s *Storage) GetRuleByBaseLink(_ context.Context, base *models.Link) (*models.Rule, error) {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+
 	for _, rules := range s.rules {
 		for _, rule := range rules {
 			if rule.BaseLink.Equals(base) {
-				return rule, nil
+				return &rule, nil
 			}
 		}
 	}

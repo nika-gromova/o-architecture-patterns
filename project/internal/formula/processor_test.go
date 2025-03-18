@@ -129,13 +129,13 @@ func TestFormula_buildExpression(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			registrar := &registrars.IoCFormulaOperatorsRegistrar{
-				Next: &registrars.IoCFormulaStringVariableRegistrar{
-					VariableName: "Locale",
-				},
-			}
+			chain := registrars.NewChain(
+				&registrars.IoCFormulaOperatorsOrRegistrar{},
+				&registrars.IoCFormulaOperatorsEqualRegistrar{},
+				&registrars.IoCFormulaStringVariableRegistrar{VariableName: "Locale"},
+			)
 
-			ctx, err := registrar.Register(context.Background())
+			ctx, err := chain.Register(context.Background())
 			require.NoError(t, err)
 
 			f := &Processor{
@@ -270,12 +270,13 @@ func TestFormula_toExpressionNode(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			f := &Processor{}
 
-			registrar := &registrars.IoCFormulaOperatorsRegistrar{
-				Next: &registrars.IoCFormulaStringVariableRegistrar{
-					VariableName: "Locale",
-				},
-			}
-			ctx, err := registrar.Register(context.Background())
+			chain := registrars.NewChain(
+				&registrars.IoCFormulaOperatorsOrRegistrar{},
+				&registrars.IoCFormulaOperatorsEqualRegistrar{},
+				&registrars.IoCFormulaStringVariableRegistrar{VariableName: "Locale"},
+			)
+
+			ctx, err := chain.Register(context.Background())
 			require.NoError(t, err)
 
 			got := f.toExpressionNode(ctx, tt.args.node)
@@ -319,12 +320,13 @@ func TestProcessor_toExpressionNode(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			registrar := &registrars.IoCFormulaOperatorsRegistrar{
-				Next: &registrars.IoCFormulaStringVariableRegistrar{
-					VariableName: "Locale",
-				},
-			}
-			ctx, err := registrar.Register(context.Background())
+			chain := registrars.NewChain(
+				&registrars.IoCFormulaOperatorsOrRegistrar{},
+				&registrars.IoCFormulaOperatorsEqualRegistrar{},
+				&registrars.IoCFormulaStringVariableRegistrar{VariableName: "Locale"},
+			)
+
+			ctx, err := chain.Register(context.Background())
 			require.NoError(t, err)
 
 			f := &Processor{}

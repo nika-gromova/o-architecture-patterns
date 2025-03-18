@@ -28,5 +28,7 @@ func (s *Service) UpdateRuleV1(ctx context.Context, req *rules_v1.UpdateRuleV1Re
 		return nil, err
 	}
 
-	return &rules_v1.UpdateRuleV1Response{}, nil
+	return &rules_v1.UpdateRuleV1Response{
+		Rule: ruleToProto(rule),
+	}, nil
 }
