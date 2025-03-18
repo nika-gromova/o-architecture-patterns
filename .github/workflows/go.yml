@@ -26,3 +26,7 @@ jobs:
         go install go.uber.org/mock/mockgen@latest
         go generate game/tests/mocks/gomock.go
         go test -v ./...
+
+    - name: Test Project
+      run: make coverage
+
