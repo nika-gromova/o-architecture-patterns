@@ -56,7 +56,5 @@ func (c *Config) GetValue(key string) string {
 }
 
 func (c *Config) GetInt(key string) int {
-	var result int
-	result = c.cfg.Int(key)
-	return result
+	return c.cfg.Int(key)
 }

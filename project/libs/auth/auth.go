@@ -8,7 +8,9 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-const claims = "auth-claims"
+type claims string
+
+const claimKey claims = "auth-claims"
 
 type Authenticator struct {
 	secretKey string
@@ -45,12 +47,12 @@ func (a *Authenticator) Authenticate(token string) (*jwt.Token, error) {
 }
 
 func ToContext(ctx context.Context, token *jwt.Token) context.Context {
-	return context.WithValue(ctx, claims, token.Claims)
+	return context.WithValue(ctx, claimKey, token.Claims)
 }
 
 func FromContext(ctx context.Context) jwt.Claims {
 	var result jwt.Claims
-	result, ok := ctx.Value(claims).(jwt.Claims)
+	result, ok := ctx.Value(claimKey).(jwt.Claims)
 	if !ok {
 		log.Errorf("failed to get claims from context")
 	}

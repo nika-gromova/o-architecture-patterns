@@ -89,3 +89,6 @@ coverage-html: coverage
 # Очистка временных файлов
 test-clean:
 	rm -f $(COVERAGE_FILE) $(COVERAGE_HTML)
+
+lint:
+	golangci-lint run ./...

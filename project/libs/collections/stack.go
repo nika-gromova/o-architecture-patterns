@@ -29,10 +29,7 @@ func (s *Stack[T]) Top() (T, error) {
 }
 
 func (s *Stack[T]) IsEmpty() bool {
-	if len(s.items) == 0 {
-		return true
-	}
-	return false
+	return len(s.items) == 0
 }
 
 func (s *Stack[T]) ToSlice() []T {

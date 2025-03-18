@@ -2,7 +2,6 @@ package panic
 
 import (
 	"context"
-	"fmt"
 	"net/http"
 	"runtime/debug"
 
@@ -15,8 +14,7 @@ import (
 func InterceptorGRPC(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (resp interface{}, err error) {
 	defer func() {
 		if e := recover(); e != nil {
-			log.Errorf("panic: %v\n", e)
-			log.Println("stacktrace from panic: \n" + string(debug.Stack()))
+			logPanic(e)
 			err = status.Errorf(codes.Internal, "panic: %v", e)
 		}
 	}()
@@ -28,11 +26,15 @@ func InterceptorHTTP(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		defer func(w http.ResponseWriter) {
 			if e := recover(); e != nil {
-				log.Errorf("panic: %v\n", e)
+				logPanic(e)
 				w.WriteHeader(http.StatusInternalServerError)
-				w.Write([]byte(fmt.Sprintf("panic: %v", e)))
 			}
 		}(w)
 		next.ServeHTTP(w, r)
 	})
+}
+
+func logPanic(e any) {
+	log.Errorf("panic: %v\n", e)
+	log.Println("stacktrace from panic: \n" + string(debug.Stack()))
 }

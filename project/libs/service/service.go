@@ -19,7 +19,7 @@ import (
 	"google.golang.org/grpc/reflection"
 )
 
-type HTTPInterceptor func(next http.Handler) http.Handler
+type HTTPInterceptor = func(next http.Handler) http.Handler
 
 type Manager struct {
 	grpcServer  *grpc.Server
@@ -56,17 +56,13 @@ func WithPorts(httpPort, grpcPort, adminPort int) opts {
 
 func WithGRPCInterceptors(interceptors ...grpc.UnaryServerInterceptor) opts {
 	return func(s *Manager) {
-		for _, interceptor := range interceptors {
-			s.grpcInterceptors = append(s.grpcInterceptors, interceptor)
-		}
+		s.grpcInterceptors = append(s.grpcInterceptors, interceptors...)
 	}
 }
 
 func WithHTTPInterceptors(interceptors ...func(next http.Handler) http.Handler) opts {
 	return func(s *Manager) {
-		for _, interceptor := range interceptors {
-			s.httpInterceptors = append(s.httpInterceptors, interceptor)
-		}
+		s.httpInterceptors = append(s.httpInterceptors, interceptors...)
 	}
 }
 
@@ -118,9 +114,7 @@ func (s *Manager) initHTTPServer(service Service) {
 	}
 
 	interceptors := make([]HTTPInterceptor, 0, len(s.httpInterceptors))
-	for _, interceptor := range s.httpInterceptors {
-		interceptors = append(interceptors, interceptor)
-	}
+	interceptors = append(interceptors, s.httpInterceptors...)
 	interceptors = append(interceptors,
 		logging.InterceptorHTTP,
 		panic.InterceptorHTTP,
@@ -189,13 +183,13 @@ func (s *Manager) RunService() {
 	}()
 
 	go func() {
-		if err = s.httpServer.ListenAndServe(); err != nil && !errors.Is(http.ErrServerClosed, err) {
+		if err = s.httpServer.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
 			log.Fatalf("http server failed to serve: %v", err)
 		}
 	}()
 
 	go func() {
-		if err = s.adminServer.ListenAndServe(); err != nil && !errors.Is(http.ErrServerClosed, err) {
+		if err = s.adminServer.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
 			log.Fatalf("admin server failed to serve: %v", err)
 		}
 	}()
