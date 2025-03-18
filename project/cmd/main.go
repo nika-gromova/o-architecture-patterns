@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"os/signal"
 	"syscall"
 
@@ -22,13 +23,17 @@ func main() {
 
 	service, err := inniter.InitService(ctx, cfg)
 	if err != nil {
-		log.Fatal(err)
+		log.Fatal(fmt.Errorf("failed to init service: %w", err))
 	}
 
+	authenticator, err := authlib.NewAuthenticator(
+		cfg.GetSecret(config.JWTPublicKey),
+	)
+	if err != nil {
+		log.Fatal(fmt.Errorf("failed to create authenticator: %w", err))
+	}
 	authHelper := &auth.Interceptor{
-		Authenticator: authlib.NewAuthenticator(
-			cfg.GetSecret(config.JWTPublicKey),
-		),
+		Authenticator: authenticator,
 	}
 	manager, err := grpcservice.New(service,
 		grpcservice.WithGRPCInterceptors(

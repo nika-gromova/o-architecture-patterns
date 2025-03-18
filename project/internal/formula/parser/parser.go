@@ -12,13 +12,13 @@ type Strategy interface {
 
 func defaultPriorities() map[string]int {
 	return map[string]int{
-		models.GraterOperator: 100,
-		models.LessOperator:   100,
-		models.EqualOperator:  100,
-		models.ANDOperator:    50,
-		models.OrOperator:     30,
-		"(":                   1000,
-		")":                   1000,
+		models.GraterOperator:     100,
+		models.LessOperator:       100,
+		models.EqualOperator:      100,
+		models.ANDOperator:        50,
+		models.OrOperator:         30,
+		models.OpeningParenthesis: 1000,
+		models.ClosingParenthesis: 1000,
 	}
 }
 
@@ -106,6 +106,9 @@ func (p *Parser) parseToTokens(input string) []string {
 		} else {
 			currentToken += val
 		}
+	}
+	if currentToken != "" {
+		result = append(result, currentToken)
 	}
 	return result
 }

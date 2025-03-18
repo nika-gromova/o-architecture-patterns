@@ -24,9 +24,7 @@ func NewScope(ctx context.Context) context.Context {
 
 	dependencies, ok := ctx.Value(ScopeDependenciesKey{}).(*Dependencies)
 	if ok && dependencies != nil {
-		for k, v := range *dependencies {
-			dependenciesCopy[k] = v
-		}
+		copyDependencies(dependencies, dependenciesCopy)
 	}
 
 	return context.WithValue(ctx, ScopeDependenciesKey{}, &dependenciesCopy)
@@ -37,12 +35,16 @@ func NewFromParent(parent context.Context, ctx context.Context) context.Context 
 
 	dependencies, ok := parent.Value(ScopeDependenciesKey{}).(*Dependencies)
 	if ok && dependencies != nil {
-		for k, v := range *dependencies {
-			dependenciesCopy[k] = v
-		}
+		copyDependencies(dependencies, dependenciesCopy)
 	}
 
 	return context.WithValue(ctx, ScopeDependenciesKey{}, &dependenciesCopy)
+}
+
+func copyDependencies(src *Dependencies, dst Dependencies) {
+	for k, v := range *src {
+		dst[k] = v
+	}
 }
 
 func Resolve(ctx context.Context, key string, args ...any) (any, error) {

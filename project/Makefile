@@ -78,8 +78,8 @@ test:
 	go test -v $(PKGS)
 
 # Подсчет покрытия тестами
-coverage: test
-	go test -coverprofile=$(COVERAGE_FILE) $(PKGS)
+coverage:
+	go test -covermode=atomic -coverpkg=./... -coverprofile=$(COVERAGE_FILE) $(PKGS)
 	go tool cover -func=$(COVERAGE_FILE)
 
 # Создание HTML-отчета покрытия

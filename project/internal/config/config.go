@@ -13,13 +13,6 @@ import (
 
 const configPathEnv = "CONFIG_PATH"
 
-var configFiles = []klfile.File{
-	{
-		Path:   os.Getenv(configPathEnv),
-		Parser: kpyaml.Parser,
-	},
-}
-
 type Config struct {
 	cfg konfig.Store
 }
@@ -28,7 +21,12 @@ func New() *Config {
 	s := konfig.New(konfig.DefaultConfig())
 
 	fileLoader := klfile.New(&klfile.Config{
-		Files: configFiles,
+		Files: []klfile.File{
+			{
+				Path:   os.Getenv(configPathEnv),
+				Parser: kpyaml.Parser,
+			},
+		},
 		Watch: true,
 		Rate:  1 * time.Second,
 	})

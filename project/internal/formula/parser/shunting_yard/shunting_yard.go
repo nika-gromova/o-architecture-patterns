@@ -49,14 +49,14 @@ func parse(priorities map[string]int, tokens []string) ([]token, error) {
 		}
 
 		switch tk {
-		case "(":
+		case models.OpeningParenthesis:
 			operators.Push(tk)
-		case ")":
+		case models.ClosingParenthesis:
 			foundLeftParenthesis := false
 			for isEmpty := operators.IsEmpty(); !isEmpty; isEmpty = operators.IsEmpty() {
 				// pop until "(" is found
 				op := operators.Pop()
-				if op == "(" {
+				if op == models.OpeningParenthesis {
 					foundLeftParenthesis = true
 					break
 				} else {
@@ -71,15 +71,12 @@ func parse(priorities map[string]int, tokens []string) ([]token, error) {
 			}
 		default:
 			// operator priority
-			priority, ok := priorities[tk]
-			if !ok {
-				return nil, fmt.Errorf("unknown operator: %v", tk)
-			}
+			priority := priorities[tk]
 
 			// pop till less priority found
 			for isEmpty := operators.IsEmpty(); !isEmpty; isEmpty = operators.IsEmpty() {
 				op, _ := operators.Top()
-				if op == "(" {
+				if op == models.OpeningParenthesis {
 					break
 				}
 				prevPriority := priorities[op]
@@ -100,7 +97,7 @@ func parse(priorities map[string]int, tokens []string) ([]token, error) {
 	// process remaining operators
 	for isEmpty := operators.IsEmpty(); !isEmpty; isEmpty = operators.IsEmpty() {
 		op := operators.Pop()
-		if op == "(" {
+		if op == models.OpeningParenthesis {
 			return nil, ErrMismatchedParentheses
 		}
 		ret.Push(token{

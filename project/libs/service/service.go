@@ -150,10 +150,10 @@ func (s *Manager) initAdminServer() {
 			return
 		}
 
-		// Подменяем servers в swagger.json
+		// Подменяем servers в swagger.json, чтобы из ходить в сервис по http
 		swagger["host"] = fmt.Sprintf("localhost:%d", s.httpPort)
 
-		// Кодируем обратно в JSON и отдаем клиенту
+		// Кодируем обратно в JSON
 		w.Header().Set("Content-Type", "application/json")
 		if err := json.NewEncoder(w).Encode(swagger); err != nil {
 			http.Error(w, "Ошибка кодирования JSON", http.StatusInternalServerError)

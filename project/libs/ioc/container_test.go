@@ -10,8 +10,9 @@ import (
 
 func TestContainer_Resolve(t *testing.T) {
 	var (
-		scope    = NewScope(context.Background())
-		newScope = NewScope(context.Background())
+		scope        = NewScope(context.Background())
+		newScope     = NewScope(context.Background())
+		invalidScope = context.WithValue(context.Background(), ScopeDependenciesKey{}, nil)
 	)
 	err := Register(scope, "Test", func(args ...any) (any, error) {
 		if len(args) != 1 {
@@ -24,6 +25,7 @@ func TestContainer_Resolve(t *testing.T) {
 		return "test" + "." + value, nil
 	})
 	require.NoError(t, err)
+	fromParentScope := NewFromParent(scope, newScope)
 
 	type args struct {
 		ctx  context.Context
@@ -46,10 +48,31 @@ func TestContainer_Resolve(t *testing.T) {
 			want:    "test.value",
 			wantErr: false,
 		},
+		"зависимость резолвится корректно, from parent scope": {
+			args: args{
+				ctx: fromParentScope,
+				key: "Test",
+				args: []any{
+					"value",
+				},
+			},
+			want:    "test.value",
+			wantErr: false,
+		},
 		"зависимость не найдена": {
 			args: args{
 				ctx: newScope,
-				key: "Test1",
+				key: "Test",
+				args: []any{
+					"value",
+				},
+			},
+			wantErr: true,
+		},
+		"зависимость не найдена, nil": {
+			args: args{
+				ctx: invalidScope,
+				key: "Test",
 				args: []any{
 					"value",
 				},

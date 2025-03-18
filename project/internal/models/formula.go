@@ -17,9 +17,11 @@ type Data[T any] interface {
 }
 
 const (
-	ANDOperator    = "AND"
-	OrOperator     = "OR"
-	GraterOperator = ">"
-	LessOperator   = "<"
-	EqualOperator  = "="
+	ANDOperator        = "AND"
+	OrOperator         = "OR"
+	GraterOperator     = ">"
+	LessOperator       = "<"
+	EqualOperator      = "="
+	OpeningParenthesis = "("
+	ClosingParenthesis = ")"
 )

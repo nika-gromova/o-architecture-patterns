@@ -2,6 +2,7 @@ package auth
 
 import (
 	"context"
+	"crypto/rsa"
 	"fmt"
 
 	"github.com/golang-jwt/jwt/v5"
@@ -13,34 +14,30 @@ type claims string
 const claimKey claims = "auth-claims"
 
 type Authenticator struct {
-	secretKey string
+	secretKey *rsa.PublicKey
 }
 
-func NewAuthenticator(secretKey string) *Authenticator {
-	return &Authenticator{
-		secretKey: secretKey,
-	}
-}
-
-func (a *Authenticator) Authenticate(token string) (*jwt.Token, error) {
-	key, err := jwt.ParseRSAPublicKeyFromPEM([]byte(a.secretKey))
+func NewAuthenticator(secretKey string) (*Authenticator, error) {
+	key, err := jwt.ParseRSAPublicKeyFromPEM([]byte(secretKey))
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse RSA key: %w", err)
 	}
+	return &Authenticator{
+		secretKey: key,
+	}, nil
+}
 
+func (a *Authenticator) Authenticate(token string) (*jwt.Token, error) {
 	t, err := jwt.Parse(token, func(token *jwt.Token) (interface{}, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodRSA); !ok {
 			return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
 		}
 
 		// return the public key that is used to validate the token.
-		return key, nil
+		return a.secretKey, nil
 	})
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse token: %w", err)
-	}
-	if !t.Valid {
-		return nil, fmt.Errorf("invalid token")
 	}
 
 	return t, nil
