@@ -28,5 +28,7 @@ jobs:
         go test -v ./...
 
     - name: Test Project
-      run: make coverage
+      run: |
+        cd project
+        make coverage
 
