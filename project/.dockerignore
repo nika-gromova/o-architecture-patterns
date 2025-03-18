@@ -1,0 +1,7 @@
+/vendor-proto
+/bin
+/api
+/tests
+coverage.html
+coverage.out
+Makefile

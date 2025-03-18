@@ -24,3 +24,11 @@ go.work.sum
 # env file
 .env
 .idea/
+.DS_Store
+
+project/bin
+project/vendor-proto
+project/config.yaml
+project/swagger.json
+project/coverage.html
+project/coverage.out
